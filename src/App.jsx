@@ -7,6 +7,7 @@ import Hero from './components/Hero';
 import Categories from './components/Categories';
 import ProductGrid from './components/ProductGrid';
 import ShopPage from './components/ShopPage';
+import ProductDetailsPage from './components/ProductDetailsPage';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 
@@ -15,18 +16,37 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
 
-  // 1. قراءة الصفحة الحالية من رابط الموقع لمنع العودة للرئيسية عند الـ Refresh
-  const [currentPage, setCurrentPage] = useState(() => {
-    return window.location.hash === '#shop' ? 'shop' : 'home';
+  // حالة المنتج المحدد للعرض
+  const [selectedProduct, setSelectedProduct] = useState(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#product-')) {
+      const id = hash.replace('#product-', '');
+      return products.find(p => String(p.id) === String(id)) || products[0];
+    }
+    return products[0];
   });
-  const [selectedCategory, setSelectedCategory] = useState('all');
 
+  // 1. قراءة الصفحة الحالية من رابط الموقع (Home / Shop / Product)
+  const [currentPage, setCurrentPage] = useState(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#product')) return 'product';
+    if (hash === '#shop') return 'shop';
+    return 'home';
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const t = translations[lang];
 
-  // 2. الاستماع لتغيرات الرابط وأزرار التراجع/التقدم في المتصفح
+  // 2. الاستماع لتغيرات الرابط والأزرار الخلفية/الأمامية في المتصفح
   useEffect(() => {
     const handleHashChange = () => {
-      if (window.location.hash === '#shop') {
+      const hash = window.location.hash;
+      if (hash.startsWith('#product-')) {
+        const id = hash.replace('#product-', '');
+        const foundProduct = products.find(p => String(p.id) === String(id));
+        if (foundProduct) setSelectedProduct(foundProduct);
+        setCurrentPage('product');
+      } else if (hash === '#shop') {
         setCurrentPage('shop');
       } else {
         setCurrentPage('home');
@@ -44,6 +64,14 @@ export default function App() {
     document.documentElement.lang = nextLang;
   };
 
+  // دالة فتح صفحة تفاصيل المنتج
+  const handleViewProduct = (product) => {
+    setSelectedProduct(product);
+    setCurrentPage('product');
+    window.location.hash = `product-${product.id}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // دالة الانتقال إلى المتجر
   const handleNavigateToShop = (category = 'all') => {
     setSelectedCategory(category);
@@ -59,16 +87,21 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // إضافة للمنتجات مع دعم تحديد الكمية (من صفحة التفاصيل)
   const addToCart = (product) => {
+    const qtyToAdd = product.quantity || 1;
     setCart(prev => {
-      const exists = prev.find(item => item.id === product.id);
+      const exists = prev.find(item => item.id === product.id && item.selectedSize === product.selectedSize);
       if (exists) {
         return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id && item.selectedSize === product.selectedSize
+            ? { ...item, quantity: item.quantity + qtyToAdd }
+            : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity: qtyToAdd }];
     });
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (id) => {
@@ -108,7 +141,7 @@ export default function App() {
 
       {/* 3. عرض الصفحة حسب الحالة */}
       <main>
-        {currentPage === 'home' ? (
+        {currentPage === 'home' && (
           <>
             <Hero currentLang={lang} />
             <Categories currentLang={lang} />
@@ -117,15 +150,28 @@ export default function App() {
               onAddToCart={addToCart} 
               currentLang={lang} 
               onNavigateToShop={handleNavigateToShop}
+              onViewProduct={handleViewProduct}
             />
           </>
-        ) : (
+        )}
+
+        {currentPage === 'shop' && (
           <ShopPage 
             products={products}
             onAddToCart={addToCart}
             currentLang={lang}
             initialCategory={selectedCategory}
             onBackToHome={handleNavigateToHome}
+            onViewProduct={handleViewProduct}
+          />
+        )}
+
+        {currentPage === 'product' && (
+          <ProductDetailsPage 
+            product={selectedProduct}
+            onAddToCart={addToCart}
+            currentLang={lang}
+            onBackToShop={() => handleNavigateToShop('all')}
           />
         )}
       </main>

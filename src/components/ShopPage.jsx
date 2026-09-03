@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function ShopPage({ products, onAddToCart, currentLang, initialCategory, onBackToHome }) {
+export default function ShopPage({ products, onAddToCart, currentLang, initialCategory, onBackToHome, onViewProduct }) {
   const isRtl = currentLang === 'ar';
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'all');
 
@@ -88,7 +88,11 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                     key={item.id}
                     className="bg-[#121212] border border-[#D4AF37]/20 rounded-sm overflow-hidden group hover:border-[#D4AF37] transition duration-300 flex flex-col justify-between shadow-xl"
                   >
-                    <div className="relative h-64 overflow-hidden bg-black/40">
+                    {/* صورة المنتوج قابلة للضغط */}
+                    <div 
+                      onClick={() => onViewProduct && onViewProduct(item)}
+                      className="relative h-64 overflow-hidden bg-black/40 cursor-pointer"
+                    >
                       <img 
                         src={item.image} 
                         alt={item.name} 
@@ -100,7 +104,11 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                     </div>
 
                     <div className="p-4 flex flex-col flex-grow justify-between text-center">
-                      <div>
+                      {/* عنوان ووصف المنتوج قابلان للضغط */}
+                      <div 
+                        onClick={() => onViewProduct && onViewProduct(item)}
+                        className="cursor-pointer"
+                      >
                         <h3 className="font-serif font-bold text-white text-base mb-1 group-hover:text-[#F3E5AB] transition duration-200">
                           {item.name}
                         </h3>
@@ -114,7 +122,10 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                           {item.price} {isRtl ? 'د.م' : 'MAD'}
                         </span>
                         <button
-                          onClick={() => onAddToCart(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddToCart(item);
+                          }}
                           className="bg-[#D4AF37] text-black hover:bg-[#F3E5AB] px-3 py-1.5 text-xs font-bold transition duration-200 flex items-center gap-1.5 cursor-pointer rounded-xs"
                         >
                           <i className="fa-solid fa-bag-shopping"></i>
