@@ -66,7 +66,16 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
       {/* عرض المنتجات مقسمة حسب الفئات */}
       <div className="space-y-16">
         {visibleSections.map((section) => {
-          const sectionProducts = products.filter(p => p.category === section.id);
+          // تصفية وفرز المنتجات: المتوفر أولاً، ثم المنتجات المنتهية في الخلف
+          const sectionProducts = products
+            .filter(p => p.category === section.id)
+            .sort((a, b) => {
+              const aStock = a.stock ?? 1;
+              const bStock = b.stock ?? 1;
+              if (aStock > 0 && bStock <= 0) return -1;
+              if (aStock <= 0 && bStock > 0) return 1;
+              return 0;
+            });
 
           if (sectionProducts.length === 0) return null;
 
@@ -83,58 +92,88 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
 
               {/* شبكة منتجات القسم */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {sectionProducts.map((item) => (
-                  <div 
-                    key={item.id}
-                    className="bg-[#121212] border border-[#D4AF37]/20 rounded-sm overflow-hidden group hover:border-[#D4AF37] transition duration-300 flex flex-col justify-between shadow-xl"
-                  >
-                    {/* صورة المنتوج قابلة للضغط */}
-                    <div 
-                      onClick={() => onViewProduct && onViewProduct(item)}
-                      className="relative h-64 overflow-hidden bg-black/40 cursor-pointer"
-                    >
-                      <img 
-                        src={item.image} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100"
-                      />
-                      <span className={`absolute top-3 ${isRtl ? 'right-3' : 'left-3'} z-10 bg-[#D4AF37] text-black text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-xs`} dir="ltr">
-                        Silver 925
-                      </span>
-                    </div>
+                {sectionProducts.map((item) => {
+                  const isOutOfStock = item.stock !== undefined && item.stock <= 0;
 
-                    <div className="p-4 flex flex-col flex-grow justify-between text-center">
-                      {/* عنوان ووصف المنتوج قابلان للضغط */}
+                  return (
+                    <div 
+                      key={item.id}
+                      className={`rounded-sm overflow-hidden group transition duration-300 flex flex-col justify-between shadow-xl ${
+                        isOutOfStock
+                          ? 'bg-[#121212]/60 border border-gray-800 opacity-60 grayscale-[30%]'
+                          : 'bg-[#121212] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
+                      }`}
+                    >
+                      {/* صورة المنتوج قابلة للضغط */}
                       <div 
                         onClick={() => onViewProduct && onViewProduct(item)}
-                        className="cursor-pointer"
+                        className="relative h-64 overflow-hidden bg-black/40 cursor-pointer"
                       >
-                        <h3 className="font-serif font-bold text-white text-base mb-1 group-hover:text-[#F3E5AB] transition duration-200">
-                          {item.name}
-                        </h3>
-                        <p className="text-xs text-gray-400 mb-3 line-clamp-2">
-                          {item.description}
-                        </p>
+                        <img 
+                          src={item.image} 
+                          alt={item.name} 
+                          className={`w-full h-full object-cover transition duration-500 ${
+                            isOutOfStock ? 'opacity-50' : 'group-hover:scale-105 opacity-90 group-hover:opacity-100'
+                          }`}
+                        />
+                        <span className={`absolute top-3 ${isRtl ? 'right-3' : 'left-3'} z-10 bg-[#D4AF37] text-black text-[9px] font-bold px-2 py-0.5 uppercase tracking-wider rounded-xs`} dir="ltr">
+                          Silver 925
+                        </span>
+
+                        {/* شارة غير متوفر */}
+                        {isOutOfStock && (
+                          <div className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-20 bg-red-900/90 text-red-200 border border-red-500/30 text-[9px] font-bold px-2 py-0.5 rounded-xs tracking-wider uppercase`}>
+                            {isRtl ? 'نفذت الكمية' : 'Out of Stock'}
+                          </div>
+                        )}
                       </div>
 
-                      <div className="pt-3 border-t border-white/10 flex items-center justify-between mt-auto">
-                        <span className="text-sm font-bold text-[#D4AF37]">
-                          {item.price} {isRtl ? 'د.م' : 'MAD'}
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onAddToCart(item);
-                          }}
-                          className="bg-[#D4AF37] text-black hover:bg-[#F3E5AB] px-3 py-1.5 text-xs font-bold transition duration-200 flex items-center gap-1.5 cursor-pointer rounded-xs"
+                      <div className="p-4 flex flex-col flex-grow justify-between text-center">
+                        {/* عنوان ووصف المنتوج قابلان للضغط */}
+                        <div 
+                          onClick={() => onViewProduct && onViewProduct(item)}
+                          className="cursor-pointer"
                         >
-                          <i className="fa-solid fa-bag-shopping"></i>
-                          <span>{isRtl ? 'إضافة' : 'Add'}</span>
-                        </button>
+                          <h3 className={`font-serif font-bold text-base mb-1 transition duration-200 ${
+                            isOutOfStock ? 'text-gray-400' : 'text-white group-hover:text-[#F3E5AB]'
+                          }`}>
+                            {item.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div className="pt-3 border-t border-white/10 flex items-center justify-between mt-auto">
+                          <span className={`text-sm font-bold ${isOutOfStock ? 'text-gray-500' : 'text-[#D4AF37]'}`}>
+                            {item.price} {isRtl ? 'د.م' : 'MAD'}
+                          </span>
+                          <button
+                            disabled={isOutOfStock}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isOutOfStock) {
+                                onAddToCart(item);
+                              }
+                            }}
+                            className={`px-3 py-1.5 text-xs font-bold transition duration-200 flex items-center gap-1.5 rounded-xs ${
+                              isOutOfStock
+                                ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
+                                : 'bg-[#D4AF37] text-black hover:bg-[#F3E5AB] cursor-pointer'
+                            }`}
+                          >
+                            <i className={`fa-solid ${isOutOfStock ? 'fa-ban' : 'fa-bag-shopping'}`}></i>
+                            <span>
+                              {isOutOfStock 
+                                ? (isRtl ? 'نفذت' : 'Sold Out') 
+                                : (isRtl ? 'إضافة' : 'Add')}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
