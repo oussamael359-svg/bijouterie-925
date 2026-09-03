@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+@import "tailwindcss";
+
+:root {
+  font-family: 'Cairo', sans-serif;
+}
+
+/* إجبار الخلفية على التدرج الشعاعي المضيء في المنتصف والداكن في الأطراف */
+html, body, #root {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background: radial-gradient(ellipse at center, #2a2a2a 0%, #121212 55%, #050505 100%) !important;
+  color: #ffffff !important;
+}
