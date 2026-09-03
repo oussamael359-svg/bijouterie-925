@@ -46,7 +46,7 @@ export default function Footer({ currentLang }) {
     </li>
   </ul>
 </div>        {/* العمود الثالث: الشحن والخدمات */}
-        <div className="space-y-3">
+                  <div className="space-y-3">
           <h3 className="text-sm font-serif font-bold text-white uppercase tracking-wider">
             {isRtl ? 'خدمة العملاء' : 'Customer Care'}
           </h3>
@@ -56,8 +56,8 @@ export default function Footer({ currentLang }) {
               <span>{isRtl ? 'توصيل سريع لجميع المدن المغربية' : 'Express Delivery Across Morocco'}</span>
             </li>
             <li className="flex items-center gap-2">
-              <i className="fa-solid fa-hand-holding-dollar text-[#D4AF37]"></i>
-              <span>{isRtl ? 'الدفع نقداً عند الاستلام' : 'Cash On Delivery Available'}</span>
+              <i className="fa-solid fa-building-columns text-[#D4AF37]"></i>
+              <span>{isRtl ? 'الدفع عبر التحويل البنكي' : 'Bank Transfer Payment'}</span>
             </li>
             <li className="flex items-center gap-2">
               <i className="fa-solid fa-rotate-left text-[#D4AF37]"></i>

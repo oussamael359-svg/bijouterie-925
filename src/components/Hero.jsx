@@ -59,7 +59,7 @@ export default function Hero({ currentLang }) {
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-3 p-3 bg-white/5 rounded-sm border border-white/5">
-          <i className="fa-solid fa-shield-halved text-[#D4AF37] text-2xl"></i>
+         <i className="fa-solid fa-check text-[#D4AF37] text-2xl"></i>
           <span className="font-semibold text-center md:text-start">{currentLang === 'ar' ? 'ضمان الجودة' : 'Lifetime Guarantee'}</span>
         </div>
       </div>
