@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 
-export default function ProductDetailsPage({ product, onAddToCart, currentLang, onBackToShop }) {
+export default function ProductDetailsPage({ product, onAddToCart, currentLang, onBack, onBackToShop }) {
   const isRtl = currentLang === 'ar';
   const [quantity, setQuantity] = useState(1);
   
-  // تجهيز هكيل المقاسات والخيارات المتغيرة مستقبلاً (Variable Product)
+  // تجهيز هيكل المقاسات والخيارات المتغيرة مستقبلاً (Variable Product)
   const [selectedSize, setSelectedSize] = useState(product?.sizes ? product.sizes[0] : null);
 
   if (!product) return null;
+
+  // إمكانية استخدام onBack أو onBackToShop للتوافق
+  const handleBackAction = onBack || onBackToShop;
 
   const handleAddToCart = () => {
     onAddToCart({
@@ -19,13 +22,13 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
 
   return (
     <div className="py-12 px-6 max-w-7xl mx-auto min-h-[80vh]">
-      {/* زر العودة للمتجر */}
+      {/* ⬅️ زر الرجوع للخلف الذكي */}
       <button 
-        onClick={onBackToShop}
-        className="mb-8 flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-[#F3E5AB] transition duration-200 cursor-pointer uppercase tracking-wider"
+        onClick={handleBackAction}
+        className="mb-8 flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-[#F3E5AB] transition duration-200 cursor-pointer uppercase tracking-wider group"
       >
-        <i className={`fa-solid ${isRtl ? 'fa-arrow-right' : 'fa-arrow-left'}`}></i>
-        <span>{isRtl ? 'العودة للمتجر' : 'Back to Shop'}</span>
+        <i className={`fa-solid ${isRtl ? 'fa-arrow-right group-hover:translate-x-1' : 'fa-arrow-left group-hover:-translate-x-1'} transition-transform duration-200`}></i>
+        <span>{isRtl ? 'الرجوع للخلف' : 'Go Back'}</span>
       </button>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -46,7 +49,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
           {product.images && product.images.length > 1 && (
             <div className="flex gap-3 overflow-x-auto pb-2">
               {product.images.map((img, idx) => (
-                <button key={idx} className="w-20 h-20 border border-white/10 hover:border-[#D4AF37] overflow-hidden rounded-xs cursor-pointer">
+                <button key={idx} className="w-20 h-20 border border-white/10 hover:border-[#D4AF37] overflow-hidden rounded-xs cursor-pointer flex-shrink-0">
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -150,7 +153,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
           {/* 🛡️ الضمانات وخدمات التوصيل */}
           <div className="border-t border-white/10 pt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-400">
             <div className="flex items-center gap-3">
-              <i className="fa-solid fa-[#D4AF37] fa-truck-fast text-lg text-[#D4AF37]"></i>
+              <i className="fa-solid fa-truck-fast text-lg text-[#D4AF37]"></i>
               <span>{isRtl ? 'توصيل سريع لجميع المدن' : 'Fast Delivery Morocco-wide'}</span>
             </div>
             <div className="flex items-center gap-3">
@@ -159,10 +162,10 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             </div>
             <div className="flex items-center gap-3">
               <i className="fa-solid fa-hand-holding-dollar text-lg text-[#D4AF37]"></i>
-              <span>{isRtl ? 'الدفع والربط البنكي' : 'Secure Payment Handling'}</span>
+              <span>{isRtl ? 'الدفع عند الاستلام' : 'Pay On Delivery'}</span>
             </div>
             <div className="flex items-center gap-3">
-              <i className="fa-solid fa-[#D4AF37] fa-box-open text-lg text-[#D4AF37]"></i>
+              <i className="fa-solid fa-box-open text-lg text-[#D4AF37]"></i>
               <span>{isRtl ? 'إمكانية المعاينة قبل الدفع' : 'Inspect Package Before Paying'}</span>
             </div>
           </div>
@@ -171,7 +174,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
           {product.groupedProducts && product.groupedProducts.length > 0 && (
             <div className="mt-8 p-4 bg-[#121212] border border-[#D4AF37]/30 rounded-xs">
               <h4 className="text-xs font-bold text-[#F3E5AB] uppercase mb-3 flex items-center gap-2">
-                <i className="fa-solid fa-[#D4AF37] fa-[#D4AF37] fa-layer-group"></i>
+                <i className="fa-solid fa-layer-group text-[#D4AF37]"></i>
                 <span>{isRtl ? 'يشمل هذا الطقم القطع التالية:' : 'This Grouped Set Includes:'}</span>
               </h4>
               <div className="space-y-2">

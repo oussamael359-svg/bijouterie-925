@@ -87,6 +87,15 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // 🔄 دالة الرجوع الذكي للصفحة السابقة (سواء الرئيسية أو المتجر)
+  const handleGoBack = () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      handleNavigateToHome();
+    }
+  };
+
   // إضافة للمنتجات مع دعم تحديد الكمية (من صفحة التفاصيل)
   const addToCart = (product) => {
     const qtyToAdd = product.quantity || 1;
@@ -171,7 +180,8 @@ export default function App() {
             product={selectedProduct}
             onAddToCart={addToCart}
             currentLang={lang}
-            onBackToShop={() => handleNavigateToShop('all')}
+            onBack={handleGoBack}
+            onBackToShop={handleGoBack}
           />
         )}
       </main>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ProductGrid({ products, onAddToCart, currentLang, onNavigateToShop }) {
+export default function ProductGrid({ products, onAddToCart, currentLang, onNavigateToShop, onViewProduct }) {
   const isRtl = currentLang === 'ar';
 
   const categorySections = [
@@ -64,7 +64,11 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                         : 'bg-[#121212] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
                     }`}
                   >
-                    <div className="relative h-60 overflow-hidden bg-black/40">
+                    {/* صورة المنتج قابلة للضغط */}
+                    <div 
+                      onClick={() => onViewProduct && onViewProduct(item)}
+                      className="relative h-60 overflow-hidden bg-black/40 cursor-pointer"
+                    >
                       <img 
                         src={item.image} 
                         alt={item.name} 
@@ -87,7 +91,11 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                     </div>
 
                     <div className="p-4 flex flex-col flex-grow justify-between text-center">
-                      <div>
+                      {/* عنوان ووصف المنتج قابلة للضغط */}
+                      <div 
+                        onClick={() => onViewProduct && onViewProduct(item)}
+                        className="cursor-pointer"
+                      >
                         <h3 className={`font-serif font-bold text-base mb-1 transition duration-200 ${
                           isLatest ? 'text-[#F3E5AB]' : 'text-white group-hover:text-[#F3E5AB]'
                         }`}>
@@ -104,7 +112,10 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                         </span>
                         
                         <button
-                          onClick={() => onAddToCart(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddToCart(item);
+                          }}
                           className={`px-3 py-1.5 text-xs font-bold transition duration-200 flex items-center gap-1.5 cursor-pointer rounded-xs ${
                             isLatest 
                               ? 'bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black hover:opacity-90 shadow-md' 
