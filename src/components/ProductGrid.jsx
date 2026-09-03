@@ -30,8 +30,18 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
   return (
     <section id="catalog" className="py-16 px-6 max-w-7xl mx-auto space-y-20">
       {categorySections.map((sec) => {
+        // تصفية المنتجات وترتيب المتوفر أولاً ثم غير المتوفر في الخلف
         const catProducts = products 
-          ? products.filter(p => p.category === sec.id).slice(0, 5) 
+          ? products
+              .filter(p => p.category === sec.id)
+              .sort((a, b) => {
+                const aStock = a.stock ?? 1;
+                const bStock = b.stock ?? 1;
+                if (aStock > 0 && bStock <= 0) return -1; // المتوفر أولاً
+                if (aStock <= 0 && bStock > 0) return 1;  // غير المتوفر يعود للخلف
+                return 0;
+              })
+              .slice(0, 5) 
           : [];
 
         if (catProducts.length === 0) return null;
@@ -52,16 +62,19 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
             {/* شبكة المنتجات */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch" dir="ltr">
               {catProducts.map((item, index) => {
-                const isLatest = index === catProducts.length - 1 && catProducts.length > 1;
+                const isOutOfStock = item.stock !== undefined && item.stock <= 0;
+                const isLatest = index === catProducts.length - 1 && catProducts.length > 1 && !isOutOfStock;
 
                 return (
                   <div 
                     key={item.id} 
                     dir={isRtl ? 'rtl' : 'ltr'}
                     className={`relative rounded-sm overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-xl ${
-                      isLatest 
-                        ? 'border border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.35)] scale-[1.02] bg-gradient-to-b from-[#1E1B13] via-[#121212] to-[#0A0A0A]' 
-                        : 'bg-[#121212] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
+                      isOutOfStock
+                        ? 'bg-[#121212]/60 border border-gray-800 opacity-60 grayscale-[30%]' // تصميم باهت للمنتج غير المتوفر
+                        : isLatest 
+                          ? 'border border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.35)] scale-[1.02] bg-gradient-to-b from-[#1E1B13] via-[#121212] to-[#0A0A0A]' 
+                          : 'bg-[#121212] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
                     }`}
                   >
                     {/* صورة المنتج قابلة للضغط */}
@@ -72,7 +85,9 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                       <img 
                         src={item.image} 
                         alt={item.name} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100"
+                        className={`w-full h-full object-cover transition duration-500 ${
+                          isOutOfStock ? 'opacity-50' : 'group-hover:scale-105 opacity-90 group-hover:opacity-100'
+                        }`}
                       />
                       
                       <span 
@@ -82,48 +97,62 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                         Silver 925
                       </span>
 
-                      {isLatest && (
+                      {/* شارة غير متوفر / جديد */}
+                      {isOutOfStock ? (
+                        <div className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-20 bg-red-900/90 text-red-200 border border-red-500/30 text-[9px] font-bold px-2 py-0.5 rounded-xs tracking-wider uppercase`}>
+                          {isRtl ? 'نفذت الكمية' : 'Out of Stock'}
+                        </div>
+                      ) : isLatest ? (
                         <div className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-20 bg-gradient-to-r from-[#D4AF37] via-[#FFF3B0] to-[#D4AF37] text-black text-[9px] font-extrabold px-2 py-0.5 rounded-xs shadow-md animate-pulse tracking-widest uppercase flex items-center gap-1`}>
                           <span>✦</span>
                           <span>{isRtl ? 'جديد' : 'NEW'}</span>
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
                     <div className="p-4 flex flex-col flex-grow justify-between text-center">
-                      {/* عنوان ووصف المنتج قابلة للضغط */}
+                      {/* عنوان ووصف المنتج */}
                       <div 
                         onClick={() => onViewProduct && onViewProduct(item)}
                         className="cursor-pointer"
                       >
                         <h3 className={`font-serif font-bold text-base mb-1 transition duration-200 ${
-                          isLatest ? 'text-[#F3E5AB]' : 'text-white group-hover:text-[#F3E5AB]'
+                          isOutOfStock ? 'text-gray-400' : isLatest ? 'text-[#F3E5AB]' : 'text-white group-hover:text-[#F3E5AB]'
                         }`}>
                           {item.name}
                         </h3>
-                        <p className="text-xs text-gray-400 mb-3 line-clamp-2">
+                        <p className="text-xs text-gray-500 mb-3 line-clamp-2">
                           {item.description}
                         </p>
                       </div>
 
                       <div className="pt-3 border-t border-white/10 flex items-center justify-between mt-auto">
-                        <span className="text-sm font-bold text-[#D4AF37]">
+                        <span className={`text-sm font-bold ${isOutOfStock ? 'text-gray-500' : 'text-[#D4AF37]'}`}>
                           {item.price} {isRtl ? 'د.م' : 'MAD'}
                         </span>
                         
                         <button
+                          disabled={isOutOfStock}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onAddToCart(item);
+                            if (!isOutOfStock) {
+                              onAddToCart(item);
+                            }
                           }}
-                          className={`px-3 py-1.5 text-xs font-bold transition duration-200 flex items-center gap-1.5 cursor-pointer rounded-xs ${
-                            isLatest 
-                              ? 'bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black hover:opacity-90 shadow-md' 
-                              : 'bg-[#D4AF37] text-black hover:bg-[#F3E5AB]'
+                          className={`px-3 py-1.5 text-xs font-bold transition duration-200 flex items-center gap-1.5 rounded-xs ${
+                            isOutOfStock
+                              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
+                              : isLatest 
+                                ? 'bg-gradient-to-r from-[#D4AF37] to-[#F3E5AB] text-black hover:opacity-90 shadow-md cursor-pointer' 
+                                : 'bg-[#D4AF37] text-black hover:bg-[#F3E5AB] cursor-pointer'
                           }`}
                         >
-                          <i className="fa-solid fa-bag-shopping"></i>
-                          <span>{isRtl ? 'إضافة' : 'Add'}</span>
+                          <i className={`fa-solid ${isOutOfStock ? 'fa-ban' : 'fa-bag-shopping'}`}></i>
+                          <span>
+                            {isOutOfStock 
+                              ? (isRtl ? 'نفذت' : 'Sold Out') 
+                              : (isRtl ? 'إضافة' : 'Add')}
+                          </span>
                         </button>
                       </div>
                     </div>

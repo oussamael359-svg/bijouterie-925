@@ -87,7 +87,7 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // 🔄 دالة الرجوع الذكي للصفحة السابقة (سواء الرئيسية أو المتجر)
+  // 🔄 دالة الرجوع الذكي للصفحة السابقة
   const handleGoBack = () => {
     if (window.history.length > 1) {
       window.history.back();
@@ -96,20 +96,33 @@ export default function App() {
     }
   };
 
-  // إضافة للمنتجات مع دعم تحديد الكمية (من صفحة التفاصيل)
+  // 📦 إضافة للمنتجات مع التحقق من حد المخزون
   const addToCart = (product) => {
+    const maxStock = product.stock ?? 99;
+    if (maxStock <= 0) return; // منع إضافة منتج نافذ من المخزن
+
     const qtyToAdd = product.quantity || 1;
+
     setCart(prev => {
-      const exists = prev.find(item => item.id === product.id && item.selectedSize === product.selectedSize);
+      const exists = prev.find(
+        item => item.id === product.id && item.selectedSize === product.selectedSize
+      );
+
       if (exists) {
+        // حساب الكمية الجديدة مع ضمان عدم تجاوز المخزون
+        const updatedQty = Math.min(exists.quantity + qtyToAdd, maxStock);
         return prev.map(item =>
           item.id === product.id && item.selectedSize === product.selectedSize
-            ? { ...item, quantity: item.quantity + qtyToAdd }
+            ? { ...item, quantity: updatedQty }
             : item
         );
       }
-      return [...prev, { ...product, quantity: qtyToAdd }];
+
+      // إضافة منتج جديد بشرط ألا يتجاوز حد المخزون
+      const initialQty = Math.min(qtyToAdd, maxStock);
+      return [...prev, { ...product, quantity: initialQty }];
     });
+
     setIsCartOpen(true);
   };
 
@@ -117,12 +130,16 @@ export default function App() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
+  // 🔢 تحديث الكمية من السلة مع الالتزام بالحد الأعلى للمخزون
   const updateQuantity = (id, delta) => {
     setCart(prev =>
       prev.map(item => {
         if (item.id === id) {
-          const newQty = item.quantity + delta;
-          return newQty > 0 ? { ...item, quantity: newQty } : item;
+          const maxStock = item.stock ?? 99;
+          const proposedQty = item.quantity + delta;
+          // عدم التجاوز لأقل من 1 أو أعلى من المخزون المتاح
+          const validQty = Math.min(Math.max(1, proposedQty), maxStock);
+          return { ...item, quantity: validQty };
         }
         return item;
       })

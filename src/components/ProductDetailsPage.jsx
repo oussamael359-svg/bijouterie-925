@@ -12,7 +12,16 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
   // إمكانية استخدام onBack أو onBackToShop للتوافق
   const handleBackAction = onBack || onBackToShop;
 
+  // 📦 التحقق من حالة المخزون والحد الأقصى
+  const maxStock = product.stock ?? 0;
+  const isOutOfStock = maxStock === 0;
+  const isMaxReached = quantity >= maxStock;
+
+  // 💰 حساب السعر الإجمالي حسب الكمية المختارة
+  const totalPrice = (product.price || 0) * quantity;
+
   const handleAddToCart = () => {
+    if (isOutOfStock) return;
     onAddToCart({
       ...product,
       selectedSize,
@@ -45,7 +54,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             </span>
           </div>
 
-          {/* دعم صور متعددة مستقبلاً (Grouped Images / Variable Gallery) */}
+          {/* دعم صور متعددة مستقبلاً */}
           {product.images && product.images.length > 1 && (
             <div className="flex gap-3 overflow-x-auto pb-2">
               {product.images.map((img, idx) => (
@@ -67,13 +76,30 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-wide">
               {product.name}
             </h1>
-            <div className="mt-3 flex items-baseline gap-4">
-              <span className="text-2xl font-bold text-[#D4AF37]">
-                {product.price} {isRtl ? 'د.م' : 'MAD'}
+            
+            {/* 💵 عرض السعر وحالة التوفر بالمخزن */}
+            <div className="mt-3 flex items-baseline gap-4 flex-wrap">
+              <span className="text-2xl md:text-3xl font-bold text-[#D4AF37] transition-all duration-300">
+                {totalPrice} {isRtl ? 'د.م' : 'MAD'}
               </span>
-              <span className="text-xs text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-800 px-2.5 py-0.5 rounded-xs">
-                {isRtl ? 'متوفر في المخزون' : 'In Stock'}
-              </span>
+
+              {/* إظهار سعر القطعة الواحدة عند زيادة الكمية عن 1 */}
+              {quantity > 1 && !isOutOfStock && (
+                <span className="text-xs text-gray-400 font-medium">
+                  ({product.price} {isRtl ? 'د.م / للقطعة' : 'MAD / each'})
+                </span>
+              )}
+
+              {/* شارة حالة التوفر في المخزن */}
+              {isOutOfStock ? (
+                <span className="text-xs text-rose-400 font-bold bg-rose-950/50 border border-rose-800 px-2.5 py-0.5 rounded-xs">
+                  {isRtl ? 'نفذت الكمية' : 'Out of Stock'}
+                </span>
+              ) : (
+                <span className="text-xs text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-800 px-2.5 py-0.5 rounded-xs">
+                  {isRtl ? `متوفر في المخزون (${maxStock} قطع)` : `In Stock (${maxStock} items)`}
+                </span>
+              )}
             </div>
           </div>
 
@@ -91,7 +117,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             </p>
           </div>
 
-          {/* 🔲 قسم خيارات المنتج المتغير (Variable Product - المقاسات / الألوان مستقبلاً) */}
+          {/* المقاسات */}
           {product.sizes && product.sizes.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
@@ -115,37 +141,57 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             </div>
           )}
 
-          {/* 🔢 تحديد الكمية والأزرار */}
+          {/* 🔢 تحديد الكمية والأزرار مع قيود المخزون */}
           <div className="pt-2 space-y-4">
-            <div className="flex items-center gap-4">
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                {isRtl ? 'الكمية:' : 'Quantity:'}
-              </label>
-              <div className="flex items-center border border-white/20 bg-[#121212] rounded-xs">
-                <button 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-3 py-1.5 text-gray-400 hover:text-white transition cursor-pointer"
-                >
-                  -
-                </button>
-                <span className="px-4 py-1.5 text-sm font-bold">{quantity}</span>
-                <button 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="px-3 py-1.5 text-gray-400 hover:text-white transition cursor-pointer"
-                >
-                  +
-                </button>
+            {!isOutOfStock && (
+              <div className="flex items-center gap-4">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  {isRtl ? 'الكمية:' : 'Quantity:'}
+                </label>
+                <div className="flex items-center border border-white/20 bg-[#121212] rounded-xs">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    -
+                  </button>
+                  <span className="px-4 py-1.5 text-sm font-bold text-[#D4AF37]">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
+                    disabled={isMaxReached}
+                    className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                    title={isMaxReached ? (isRtl ? 'وصلت للحد الأقصى المتاح في المخزن' : 'Max stock reached') : ''}
+                  >
+                    +
+                  </button>
+                </div>
+
+                {isMaxReached && (
+                  <span className="text-[11px] text-[#D4AF37] font-medium">
+                    {isRtl ? 'هذا أقصى عدد متوفر حالياً' : 'Maximum available stock'}
+                  </span>
+                )}
               </div>
-            </div>
+            )}
 
             {/* أزرار الشراء والتفاعل */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 bg-[#D4AF37] text-black hover:bg-[#F3E5AB] font-bold py-3.5 px-6 rounded-xs transition duration-300 flex items-center justify-center gap-2 cursor-pointer uppercase text-xs tracking-wider shadow-lg shadow-[#D4AF37]/20"
+                disabled={isOutOfStock}
+                className={`flex-1 font-bold py-3.5 px-6 rounded-xs transition duration-300 flex items-center justify-center gap-2 uppercase text-xs tracking-wider shadow-lg ${
+                  isOutOfStock 
+                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10 shadow-none' 
+                    : 'bg-[#D4AF37] text-black hover:bg-[#F3E5AB] cursor-pointer shadow-[#D4AF37]/20'
+                }`}
               >
-                <i className="fa-solid fa-bag-shopping text-base"></i>
-                <span>{isRtl ? 'إضافة إلى السلة' : 'Add To Cart'}</span>
+                <i className={`fa-solid ${isOutOfStock ? 'fa-ban' : 'fa-bag-shopping'} text-base`}></i>
+                <span>
+                  {isOutOfStock 
+                    ? (isRtl ? 'غير متوفر حالياً في المخزن' : 'Out of Stock') 
+                    : (isRtl ? `إضافة إلى السلة (${totalPrice} د.م)` : `Add To Cart (${totalPrice} MAD)`)}
+                </span>
               </button>
             </div>
           </div>
@@ -170,7 +216,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             </div>
           </div>
 
-          {/* 🔗 قسم المنتجات المجمعة / الأطقم مستقبلاً (Grouped Products Slot) */}
+          {/* 🔗 قسم المنتجات المجمعة / الأطقم مستقبلاً */}
           {product.groupedProducts && product.groupedProducts.length > 0 && (
             <div className="mt-8 p-4 bg-[#121212] border border-[#D4AF37]/30 rounded-xs">
               <h4 className="text-xs font-bold text-[#F3E5AB] uppercase mb-3 flex items-center gap-2">
