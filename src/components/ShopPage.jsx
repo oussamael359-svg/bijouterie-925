@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function ShopPage({ products, onAddToCart, currentLang, initialCategory, onBackToHome, onViewProduct }) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // قراءة الفئة إما من رابط الـ Query Parameters (الفوتر) أو من الـ props
+  const queryCategory = searchParams.get('category');
+  const activeCategory = queryCategory || initialCategory || 'all';
+
   const isRtl = currentLang === 'ar';
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'all');
+  const [selectedCategory, setSelectedCategory] = useState(activeCategory);
 
   useEffect(() => {
-    setSelectedCategory(initialCategory || 'all');
-  }, [initialCategory]);
+    setSelectedCategory(activeCategory);
+    // إرجاع الشاشة إلى أعلى الصفحة بسلاسة عند تغيير الفئة أو الدخول للمتجر
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [activeCategory]);
 
   const categories = [
     { id: 'all', name: isRtl ? 'الكل' : 'All' },
@@ -31,7 +41,10 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
     <div className="py-12 px-6 max-w-7xl mx-auto min-h-[70vh]">
       {/* زر العودة للصفحة الرئيسية */}
       <button 
-        onClick={onBackToHome}
+        onClick={() => {
+          if (onBackToHome) onBackToHome();
+          else navigate('/');
+        }}
         className="mb-8 flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-[#F3E5AB] transition duration-200 cursor-pointer uppercase tracking-wider"
       >
         <i className={`fa-solid ${isRtl ? 'fa-arrow-right' : 'fa-arrow-left'}`}></i>
@@ -51,7 +64,9 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
         {categories.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
+            onClick={() => {
+              navigate(`/shop?category=${cat.id}`);
+            }}
             className={`px-5 py-2 text-xs font-bold transition duration-300 rounded-xs uppercase tracking-wider cursor-pointer ${
               selectedCategory === cat.id
                 ? 'bg-[#D4AF37] text-black shadow-lg shadow-[#D4AF37]/20'
@@ -66,7 +81,6 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
       {/* عرض المنتجات مقسمة حسب الفئات */}
       <div className="space-y-16">
         {visibleSections.map((section) => {
-          // تصفية وفرز المنتجات: المتوفر أولاً، ثم المنتجات المنتهية في الخلف
           const sectionProducts = products
             .filter(p => p.category === section.id)
             .sort((a, b) => {
@@ -98,17 +112,22 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                   return (
                     <div 
                       key={item.id}
-                      className={`rounded-sm overflow-hidden group transition duration-300 flex flex-col justify-between shadow-xl ${
+                      onClick={() => {
+                        // عند الضغط على أي مكان في البطاقة سيتم فتح تفاصيل المنتج
+                        if (onViewProduct) {
+                          onViewProduct(item);
+                        } else {
+                          navigate(`/product/${item.id}`);
+                        }
+                      }}
+                      className={`rounded-sm overflow-hidden group transition duration-300 flex flex-col justify-between shadow-xl cursor-pointer ${
                         isOutOfStock
                           ? 'bg-[#121212]/60 border border-gray-800 opacity-60 grayscale-[30%]'
                           : 'bg-[#121212] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
                       }`}
                     >
-                      {/* صورة المنتوج قابلة للضغط */}
-                      <div 
-                        onClick={() => onViewProduct && onViewProduct(item)}
-                        className="relative h-64 overflow-hidden bg-black/40 cursor-pointer"
-                      >
+                      {/* صورة المنتوج */}
+                      <div className="relative h-64 overflow-hidden bg-black/40">
                         <img 
                           src={item.image} 
                           alt={item.name} 
@@ -129,11 +148,7 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                       </div>
 
                       <div className="p-4 flex flex-col flex-grow justify-between text-center">
-                        {/* عنوان ووصف المنتوج قابلان للضغط */}
-                        <div 
-                          onClick={() => onViewProduct && onViewProduct(item)}
-                          className="cursor-pointer"
-                        >
+                        <div>
                           <h3 className={`font-serif font-bold text-base mb-1 transition duration-200 ${
                             isOutOfStock ? 'text-gray-400' : 'text-white group-hover:text-[#F3E5AB]'
                           }`}>
@@ -151,6 +166,7 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                           <button
                             disabled={isOutOfStock}
                             onClick={(e) => {
+                              // منع انتقال الحدث للبطاقة حتى لا يفتح صفحة المنتج عند الضغط على زر الشراء
                               e.stopPropagation();
                               if (!isOutOfStock) {
                                 onAddToCart(item);

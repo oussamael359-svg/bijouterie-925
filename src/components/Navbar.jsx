@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Navbar({ 
   cartCount, 
@@ -12,15 +13,13 @@ export default function Navbar({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // دالة للعودة للرئيسية وإغلاق القائمة
-  const handleGoHome = (e) => {
-    e.preventDefault();
+  const handleGoHome = () => {
     if (onBackToHome) onBackToHome();
     setIsSidebarOpen(false);
   };
 
   // دالة الذهاب للمتجر وإغلاق القائمة
-  const handleGoToCatalog = (e) => {
-    e.preventDefault();
+  const handleGoToCatalog = () => {
     if (onNavigateToShop) onNavigateToShop('all');
     setIsSidebarOpen(false);
   };
@@ -35,6 +34,7 @@ export default function Navbar({
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="flex items-center gap-3 text-white hover:text-[#D4AF37] transition duration-300 focus:outline-none cursor-pointer group"
+              aria-label="Open Menu"
             >
               <div className="p-2.5 border-2 border-[#D4AF37]/50 rounded-md group-hover:border-[#D4AF37] transition duration-300">
                 <i className="fa-solid fa-bars-staggered text-2xl text-[#D4AF37]"></i>
@@ -46,17 +46,17 @@ export default function Navbar({
           </div>
 
           {/* 2. اللوجو (العودة للرئيسية عند النقر) */}
-          <a 
-            href="#home" 
+          <Link 
+            to="/" 
             onClick={handleGoHome} 
             className="flex items-center justify-center py-1 group cursor-pointer"
           >
             <img 
               src="/logo.png" 
               alt="Bijouterie 925" 
-              className="h-16 md:h-35 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-16 md:h-24 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />
-          </a>
+          </Link>
 
           {/* 3. عناصر جهة اليمين */}
           <div className="flex items-center gap-3 sm:gap-5">
@@ -71,6 +71,7 @@ export default function Navbar({
               onClick={() => alert(currentLang === 'ar' ? "سيتم فتح نافذة تسجيل الدخول قريباً" : "Login modal coming soon")}
               className="p-2 text-[#F3E5AB] hover:text-[#D4AF37] transition duration-300 cursor-pointer"
               title={currentLang === 'ar' ? 'حسابي' : 'Account'}
+              aria-label="Account"
             >
               <i className="fa-regular fa-user text-2xl"></i>
             </button>
@@ -79,6 +80,7 @@ export default function Navbar({
               onClick={onOpenCart}
               className="relative p-2 text-[#F3E5AB] hover:text-[#D4AF37] transition duration-300 cursor-pointer"
               title={currentLang === 'ar' ? 'سلة التسوق' : 'Cart'}
+              aria-label="Shopping Cart"
             >
               <i className="fa-solid fa-bag-shopping text-2xl"></i>
               {cartCount > 0 && (
@@ -109,6 +111,7 @@ export default function Navbar({
               <button 
                 onClick={() => setIsSidebarOpen(false)}
                 className="text-gray-400 hover:text-[#D4AF37] text-2xl transition duration-200 cursor-pointer"
+                aria-label="Close Menu"
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -116,24 +119,24 @@ export default function Navbar({
 
             <nav className="flex flex-col gap-6 my-auto text-lg font-serif tracking-wider">
               {/* الرئيسية */}
-              <a 
-                href="#home" 
+              <Link 
+                to="/" 
                 onClick={handleGoHome}
                 className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
               >
-                <span>{t.nav.home}</span>
+                <span>{t?.nav?.home || (currentLang === 'ar' ? 'الرئيسية' : 'Home')}</span>
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
-              </a>
+              </Link>
 
               {/* المجموعات / المتجر */}
-              <a 
-                href="#catalog" 
+              <Link 
+                to="/shop" 
                 onClick={handleGoToCatalog}
                 className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
               >
-                <span className="font-bold">{t.nav.catalog}</span>
+                <span className="font-bold">{t?.nav?.catalog || (currentLang === 'ar' ? 'المتجر' : 'Shop')}</span>
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
-              </a>
+              </Link>
 
               {/* من نحن */}
               <a 
@@ -141,7 +144,7 @@ export default function Navbar({
                 onClick={() => setIsSidebarOpen(false)}
                 className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
               >
-                <span>{t.nav.about}</span>
+                <span>{t?.nav?.about || (currentLang === 'ar' ? 'من نحن' : 'About Us')}</span>
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
               </a>
 
@@ -151,7 +154,7 @@ export default function Navbar({
                 onClick={() => setIsSidebarOpen(false)}
                 className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
               >
-                <span>{t.nav.contact}</span>
+                <span>{t?.nav?.contact || (currentLang === 'ar' ? 'اتصل بنا' : 'Contact Us')}</span>
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
               </a>
             </nav>

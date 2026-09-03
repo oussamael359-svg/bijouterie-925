@@ -1,11 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Footer({ currentLang }) {
   const isRtl = currentLang === 'ar';
 
   return (
     <footer className="bg-[#080808] text-gray-400 border-t border-[#D4AF37]/20 pt-16 pb-8 px-6 mt-20">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10" dir={isRtl ? 'rtl' : 'ltr'}>
         
         {/* العمود الأول: الماركة والهوية */}
         <div className="space-y-4">
@@ -23,30 +24,32 @@ export default function Footer({ currentLang }) {
           </div>
         </div>
 
-{/* روابط سريعة للمجموعات */}
-<div className="space-y-3 text-center md:text-start">
-  <h4 className="text-sm font-serif font-bold text-white uppercase tracking-wider mb-2">
-    {isRtl ? 'المجموعات' : 'Collections'}
-  </h4>
-  <ul className="space-y-2 text-xs">
-    <li>
-      <a href="#rings" className="hover:text-[#F3E5AB] transition duration-200">
-        {isRtl ? 'خواتم فضة' : 'Silver Rings'}
-      </a>
-    </li>
-    <li>
-      <a href="#necklaces" className="hover:text-[#F3E5AB] transition duration-200">
-        {isRtl ? 'سلاسل وقلائد' : 'Chains & Necklaces'}
-      </a>
-    </li>
-    <li>
-      <a href="#bracelets" className="hover:text-[#F3E5AB] transition duration-200">
-        {isRtl ? 'أساور رجالية' : 'Men\'s Bracelets'}
-      </a>
-    </li>
-  </ul>
-</div>        {/* العمود الثالث: الشحن والخدمات */}
-                  <div className="space-y-3">
+        {/* روابط سريعة للمجموعات (مع تحديد الفئة عبر Query Parameters) */}
+        <div className="space-y-3 text-start">
+          <h4 className="text-sm font-serif font-bold text-white uppercase tracking-wider mb-2">
+            {isRtl ? 'المجموعات' : 'Collections'}
+          </h4>
+          <ul className="space-y-2 text-xs">
+            <li>
+              <Link to="/shop?category=rings" className="hover:text-[#F3E5AB] transition duration-200">
+                {isRtl ? 'خواتم فضة' : 'Silver Rings'}
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop?category=necklaces" className="hover:text-[#F3E5AB] transition duration-200">
+                {isRtl ? 'سلاسل وقلائد' : 'Chains & Necklaces'}
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop?category=bracelets" className="hover:text-[#F3E5AB] transition duration-200">
+                {isRtl ? 'أساور رجالية' : 'Men\'s Bracelets'}
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* العمود الثالث: الشحن والخدمات */}
+        <div className="space-y-3 text-start">
           <h3 className="text-sm font-serif font-bold text-white uppercase tracking-wider">
             {isRtl ? 'خدمة العملاء' : 'Customer Care'}
           </h3>
@@ -67,7 +70,7 @@ export default function Footer({ currentLang }) {
         </div>
 
         {/* العمود الرابع: التواصل والشبكات الاجتماعية */}
-        <div className="space-y-4">
+        <div className="space-y-4 text-start">
           <h3 className="text-sm font-serif font-bold text-white uppercase tracking-wider">
             {isRtl ? 'تواصل معنا' : 'Connect With Us'}
           </h3>
@@ -75,7 +78,6 @@ export default function Footer({ currentLang }) {
             {isRtl ? 'تابع حساباتنا للاطلاع على أحدث المجموعات والعروض الحصرية.' : 'Follow us for latest drops and exclusive offers.'}
           </p>
           
-          {/* أيقونات وسائل التواصل الاجتماعي */}
           <div className="flex items-center gap-4 text-lg">
             <a 
               href="https://wa.me/" 

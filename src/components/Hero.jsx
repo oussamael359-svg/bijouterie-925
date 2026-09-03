@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Hero({ currentLang }) {
   return (
@@ -27,18 +28,18 @@ export default function Hero({ currentLang }) {
 
       {/* أزرار الإجراءات (CTA) */}
       <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-16">
-        <a 
-          href="#catalog" 
-          className="w-full sm:w-auto bg-[#D4AF37] text-black hover:bg-[#F3E5AB] px-9 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 shadow-xl shadow-[#D4AF37]/20"
+        <Link 
+          to="/shop" 
+          className="w-full sm:w-auto bg-[#D4AF37] text-black hover:bg-[#F3E5AB] px-9 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 shadow-xl shadow-[#D4AF37]/20 text-center"
         >
           {currentLang === 'ar' ? 'تصفح المجموعات' : 'Explore Collections'}
-        </a>
-        <a 
-          href="#about" 
-          className="w-full sm:w-auto border border-[#D4AF37]/60 text-[#F3E5AB] hover:bg-[#D4AF37]/10 px-9 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 backdrop-blur-xs"
+        </Link>
+        <Link 
+          to="/shop" 
+          className="w-full sm:w-auto border border-[#D4AF37]/60 text-[#F3E5AB] hover:bg-[#D4AF37]/10 px-9 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 backdrop-blur-xs text-center"
         >
           {currentLang === 'ar' ? 'عن الماركة' : 'Our Legacy'}
-        </a>
+        </Link>
       </div>
 
       {/* شريط المميزات الفاخر */}

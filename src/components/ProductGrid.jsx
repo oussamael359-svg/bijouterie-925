@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function ProductGrid({ products, onAddToCart, currentLang, onNavigateToShop, onViewProduct }) {
+export default function ProductGrid({ products, onAddToCart, currentLang }) {
+  const navigate = useNavigate();
   const isRtl = currentLang === 'ar';
 
   const categorySections = [
@@ -30,15 +32,14 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
   return (
     <section id="catalog" className="py-16 px-6 max-w-7xl mx-auto space-y-20">
       {categorySections.map((sec) => {
-        // تصفية المنتجات وترتيب المتوفر أولاً ثم غير المتوفر في الخلف
         const catProducts = products 
           ? products
               .filter(p => p.category === sec.id)
               .sort((a, b) => {
                 const aStock = a.stock ?? 1;
                 const bStock = b.stock ?? 1;
-                if (aStock > 0 && bStock <= 0) return -1; // المتوفر أولاً
-                if (aStock <= 0 && bStock > 0) return 1;  // غير المتوفر يعود للخلف
+                if (aStock > 0 && bStock <= 0) return -1;
+                if (aStock <= 0 && bStock > 0) return 1; 
                 return 0;
               })
               .slice(0, 5) 
@@ -48,7 +49,6 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
 
         return (
           <div key={sec.id} id={sec.id} className="space-y-8 scroll-mt-24">
-            {/* عنوان ووصف القسم */}
             <div className="text-center">
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#F3E5AB] tracking-widest uppercase">
                 {sec.title}
@@ -59,7 +59,6 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
               </p>
             </div>
 
-            {/* شبكة المنتجات */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch" dir="ltr">
               {catProducts.map((item, index) => {
                 const isOutOfStock = item.stock !== undefined && item.stock <= 0;
@@ -71,15 +70,15 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                     dir={isRtl ? 'rtl' : 'ltr'}
                     className={`relative rounded-sm overflow-hidden group transition-all duration-300 flex flex-col justify-between shadow-xl ${
                       isOutOfStock
-                        ? 'bg-[#121212]/60 border border-gray-800 opacity-60 grayscale-[30%]' // تصميم باهت للمنتج غير المتوفر
+                        ? 'bg-[#121212]/60 border border-gray-800 opacity-60 grayscale-[30%]'
                         : isLatest 
                           ? 'border border-[#D4AF37] shadow-[0_0_25px_rgba(212,175,55,0.35)] scale-[1.02] bg-gradient-to-b from-[#1E1B13] via-[#121212] to-[#0A0A0A]' 
                           : 'bg-[#121212] border border-[#D4AF37]/20 hover:border-[#D4AF37]'
                     }`}
                   >
-                    {/* صورة المنتج قابلة للضغط */}
+                    {/* صورة المنتج - توجيه لصفحة التفاصيل */}
                     <div 
-                      onClick={() => onViewProduct && onViewProduct(item)}
+                      onClick={() => navigate(`/product/${item.id}`)}
                       className="relative h-60 overflow-hidden bg-black/40 cursor-pointer"
                     >
                       <img 
@@ -97,7 +96,6 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                         Silver 925
                       </span>
 
-                      {/* شارة غير متوفر / جديد */}
                       {isOutOfStock ? (
                         <div className={`absolute top-3 ${isRtl ? 'left-3' : 'right-3'} z-20 bg-red-900/90 text-red-200 border border-red-500/30 text-[9px] font-bold px-2 py-0.5 rounded-xs tracking-wider uppercase`}>
                           {isRtl ? 'نفذت الكمية' : 'Out of Stock'}
@@ -111,9 +109,9 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
                     </div>
 
                     <div className="p-4 flex flex-col flex-grow justify-between text-center">
-                      {/* عنوان ووصف المنتج */}
+                      {/* عنوان ووصف المنتج - توجيه لصفحة التفاصيل */}
                       <div 
-                        onClick={() => onViewProduct && onViewProduct(item)}
+                        onClick={() => navigate(`/product/${item.id}`)}
                         className="cursor-pointer"
                       >
                         <h3 className={`font-serif font-bold text-base mb-1 transition duration-200 ${
@@ -161,10 +159,10 @@ export default function ProductGrid({ products, onAddToCart, currentLang, onNavi
               })}
             </div>
 
-            {/* زر تصفح المزيد لكل تصنيف */}
+            {/* زر تصفح تشكيلة التصنيف الكاملة */}
             <div className="text-center pt-2">
               <button
-                onClick={() => onNavigateToShop && onNavigateToShop(sec.id)}
+                onClick={() => navigate('/shop')}
                 className="inline-flex items-center gap-2 border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black px-6 py-2.5 text-xs font-bold tracking-widest uppercase transition duration-300 rounded-xs group cursor-pointer"
               >
                 <span>{isRtl ? 'تصفح تشكيلة التصنيف الكاملة' : 'View Full Category'}</span>

@@ -1,16 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
-export default function ProductDetailsPage({ product, onAddToCart, currentLang, onBack, onBackToShop }) {
+export default function ProductDetailsPage({ products, onAddToCart, currentLang }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const isRtl = currentLang === 'ar';
+
+  // 🔼 التمرير إلى أعلى الصفحة تلقائياً عند الدخول أو تغيير المنتج
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
+  // البحث عن المنتج المطابق للـ ID القادم من الرابط
+  const product = products ? products.find(p => String(p.id) === String(id)) : null;
+
   const [quantity, setQuantity] = useState(1);
-  
-  // تجهيز هيكل المقاسات والخيارات المتغيرة مستقبلاً (Variable Product)
-  const [selectedSize, setSelectedSize] = useState(product?.sizes ? product.sizes[0] : null);
+  const [selectedSize, setSelectedSize] = useState(null);
 
-  if (!product) return null;
+  // تحديث المقاس الافتراضي عند تحميل المنتج
+  useEffect(() => {
+    if (product?.sizes && product.sizes.length > 0) {
+      setSelectedSize(product.sizes[0]);
+    }
+  }, [product]);
 
-  // إمكانية استخدام onBack أو onBackToShop للتوافق
-  const handleBackAction = onBack || onBackToShop;
+  if (!product) {
+    return (
+      <div className="py-32 text-center space-y-6 max-w-xl mx-auto px-6 min-h-[70vh]">
+        <h2 className="text-2xl font-serif text-[#F3E5AB]">
+          {isRtl ? 'عذراً، لم يتم العثور على هذا المنتج' : 'Product Not Found'}
+        </h2>
+        <button
+          onClick={() => navigate('/shop')}
+          className="inline-block bg-[#D4AF37] text-black px-8 py-3 text-xs font-bold uppercase tracking-widest rounded-xs hover:bg-[#F3E5AB] transition duration-300 cursor-pointer"
+        >
+          {isRtl ? 'العودة إلى المتجر' : 'Back to Shop'}
+        </button>
+      </div>
+    );
+  }
 
   // 📦 التحقق من حالة المخزون والحد الأقصى
   const maxStock = product.stock ?? 0;
@@ -31,16 +59,16 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
 
   return (
     <div className="py-12 px-6 max-w-7xl mx-auto min-h-[80vh]">
-      {/* ⬅️ زر الرجوع للخلف الذكي */}
+      {/* ⬅️ زر الرجوع للخلف */}
       <button 
-        onClick={handleBackAction}
+        onClick={() => navigate(-1)}
         className="mb-8 flex items-center gap-2 text-xs font-bold text-[#D4AF37] hover:text-[#F3E5AB] transition duration-200 cursor-pointer uppercase tracking-wider group"
       >
         <i className={`fa-solid ${isRtl ? 'fa-arrow-right group-hover:translate-x-1' : 'fa-arrow-left group-hover:-translate-x-1'} transition-transform duration-200`}></i>
         <span>{isRtl ? 'الرجوع للخلف' : 'Go Back'}</span>
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start" dir={isRtl ? 'rtl' : 'ltr'}>
         {/* 📸 معرض الصور (Image Gallery) */}
         <div className="space-y-4">
           <div className="relative bg-[#121212] border border-[#D4AF37]/30 rounded-sm overflow-hidden shadow-2xl group">
@@ -53,17 +81,6 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
               Silver 925
             </span>
           </div>
-
-          {/* دعم صور متعددة مستقبلاً */}
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {product.images.map((img, idx) => (
-                <button key={idx} className="w-20 h-20 border border-white/10 hover:border-[#D4AF37] overflow-hidden rounded-xs cursor-pointer flex-shrink-0">
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* 📝 تفاصيل ومعلومات المنتج */}
@@ -83,14 +100,12 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
                 {totalPrice} {isRtl ? 'د.م' : 'MAD'}
               </span>
 
-              {/* إظهار سعر القطعة الواحدة عند زيادة الكمية عن 1 */}
               {quantity > 1 && !isOutOfStock && (
                 <span className="text-xs text-gray-400 font-medium">
                   ({product.price} {isRtl ? 'د.م / للقطعة' : 'MAD / each'})
                 </span>
               )}
 
-              {/* شارة حالة التوفر في المخزن */}
               {isOutOfStock ? (
                 <span className="text-xs text-rose-400 font-bold bg-rose-950/50 border border-rose-800 px-2.5 py-0.5 rounded-xs">
                   {isRtl ? 'نفذت الكمية' : 'Out of Stock'}
@@ -141,7 +156,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
             </div>
           )}
 
-          {/* 🔢 تحديد الكمية والأزرار مع قيود المخزون */}
+          {/* 🔢 تحديد الكمية والأزرار */}
           <div className="pt-2 space-y-4">
             {!isOutOfStock && (
               <div className="flex items-center gap-4">
@@ -152,7 +167,7 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
                   <button 
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     -
                   </button>
@@ -160,22 +175,15 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
                   <button 
                     onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
                     disabled={isMaxReached}
-                    className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed"
-                    title={isMaxReached ? (isRtl ? 'وصلت للحد الأقصى المتاح في المخزن' : 'Max stock reached') : ''}
+                    className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     +
                   </button>
                 </div>
-
-                {isMaxReached && (
-                  <span className="text-[11px] text-[#D4AF37] font-medium">
-                    {isRtl ? 'هذا أقصى عدد متوفر حالياً' : 'Maximum available stock'}
-                  </span>
-                )}
               </div>
             )}
 
-            {/* أزرار الشراء والتفاعل */}
+            {/* زر إضافة للسلة */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 onClick={handleAddToCart}
@@ -215,24 +223,6 @@ export default function ProductDetailsPage({ product, onAddToCart, currentLang, 
               <span>{isRtl ? 'إمكانية المعاينة قبل الدفع' : 'Inspect Package Before Paying'}</span>
             </div>
           </div>
-
-          {/* 🔗 قسم المنتجات المجمعة / الأطقم مستقبلاً */}
-          {product.groupedProducts && product.groupedProducts.length > 0 && (
-            <div className="mt-8 p-4 bg-[#121212] border border-[#D4AF37]/30 rounded-xs">
-              <h4 className="text-xs font-bold text-[#F3E5AB] uppercase mb-3 flex items-center gap-2">
-                <i className="fa-solid fa-layer-group text-[#D4AF37]"></i>
-                <span>{isRtl ? 'يشمل هذا الطقم القطع التالية:' : 'This Grouped Set Includes:'}</span>
-              </h4>
-              <div className="space-y-2">
-                {product.groupedProducts.map((item, i) => (
-                  <div key={i} className="flex justify-between items-center text-xs text-gray-300">
-                    <span>• {item.name}</span>
-                    <span className="text-[#D4AF37] font-bold">{item.price} MAD</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

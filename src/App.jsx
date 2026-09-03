@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { products } from './data/products';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { products as initialProducts } from './data/products';
 import { translations } from './data/translations';
 import TopBar from './components/TopBar';
 import Navbar from './components/Navbar';
@@ -10,52 +11,55 @@ import ShopPage from './components/ShopPage';
 import ProductDetailsPage from './components/ProductDetailsPage';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
+import AdminLayout from './admin/AdminLayout';
+
+// 📐 مكون التخطيط العام للمتجر (يحتوي على الهيدر والفوتر والسلة الثابتة)
+function StoreLayout({ 
+  cartCount, onOpenCart, lang, toggleLanguage, t, 
+  cart, removeFromCart, updateQuantity, totalCartPrice, 
+  isCartOpen, setIsCartOpen, setSelectedCategory 
+}) {
+  return (
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#2A2A2A] via-[#121212] to-[#080808] text-white font-sans flex flex-col justify-between">
+      <div>
+        <TopBar currentLang={lang} />
+        <Navbar 
+          cartCount={cartCount} 
+          onOpenCart={onOpenCart} 
+          currentLang={lang}
+          onToggleLang={toggleLanguage}
+          t={t}
+        />
+        <main>
+          {/* هنا سيتم عرض الصفحة الحالية (الرئيسية، المتجر، أو تفاصيل المنتج) */}
+          <Outlet />
+        </main>
+      </div>
+
+      <CartDrawer 
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        onRemove={removeFromCart}
+        onUpdateQuantity={updateQuantity}
+        totalPrice={totalCartPrice}
+        currentLang={lang}
+      />
+
+      <Footer currentLang={lang} setSelectedCategory={setSelectedCategory} />
+    </div>
+  );
+}
 
 export default function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
-
-  // حالة المنتج المحدد للعرض
-  const [selectedProduct, setSelectedProduct] = useState(() => {
-    const hash = window.location.hash;
-    if (hash.startsWith('#product-')) {
-      const id = hash.replace('#product-', '');
-      return products.find(p => String(p.id) === String(id)) || products[0];
-    }
-    return products[0];
-  });
-
-  // 1. قراءة الصفحة الحالية من رابط الموقع (Home / Shop / Product)
-  const [currentPage, setCurrentPage] = useState(() => {
-    const hash = window.location.hash;
-    if (hash.startsWith('#product')) return 'product';
-    if (hash === '#shop') return 'shop';
-    return 'home';
-  });
-
+  
+  const [products, setProducts] = useState(initialProducts);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  
   const t = translations[lang];
-
-  // 2. الاستماع لتغيرات الرابط والأزرار الخلفية/الأمامية في المتصفح
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash.startsWith('#product-')) {
-        const id = hash.replace('#product-', '');
-        const foundProduct = products.find(p => String(p.id) === String(id));
-        if (foundProduct) setSelectedProduct(foundProduct);
-        setCurrentPage('product');
-      } else if (hash === '#shop') {
-        setCurrentPage('shop');
-      } else {
-        setCurrentPage('home');
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
 
   const toggleLanguage = () => {
     const nextLang = lang === 'ar' ? 'en' : 'ar';
@@ -64,42 +68,9 @@ export default function App() {
     document.documentElement.lang = nextLang;
   };
 
-  // دالة فتح صفحة تفاصيل المنتج
-  const handleViewProduct = (product) => {
-    setSelectedProduct(product);
-    setCurrentPage('product');
-    window.location.hash = `product-${product.id}`;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // دالة الانتقال إلى المتجر
-  const handleNavigateToShop = (category = 'all') => {
-    setSelectedCategory(category);
-    setCurrentPage('shop');
-    window.location.hash = 'shop';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // دالة العودة للرئيسية
-  const handleNavigateToHome = () => {
-    setCurrentPage('home');
-    window.location.hash = 'home';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // 🔄 دالة الرجوع الذكي للصفحة السابقة
-  const handleGoBack = () => {
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      handleNavigateToHome();
-    }
-  };
-
-  // 📦 إضافة للمنتجات مع التحقق من حد المخزون
   const addToCart = (product) => {
     const maxStock = product.stock ?? 99;
-    if (maxStock <= 0) return; // منع إضافة منتج نافذ من المخزن
+    if (maxStock <= 0) return;
 
     const qtyToAdd = product.quantity || 1;
 
@@ -109,7 +80,6 @@ export default function App() {
       );
 
       if (exists) {
-        // حساب الكمية الجديدة مع ضمان عدم تجاوز المخزون
         const updatedQty = Math.min(exists.quantity + qtyToAdd, maxStock);
         return prev.map(item =>
           item.id === product.id && item.selectedSize === product.selectedSize
@@ -118,7 +88,6 @@ export default function App() {
         );
       }
 
-      // إضافة منتج جديد بشرط ألا يتجاوز حد المخزون
       const initialQty = Math.min(qtyToAdd, maxStock);
       return [...prev, { ...product, quantity: initialQty }];
     });
@@ -130,14 +99,12 @@ export default function App() {
     setCart(prev => prev.filter(item => item.id !== id));
   };
 
-  // 🔢 تحديث الكمية من السلة مع الالتزام بالحد الأعلى للمخزون
   const updateQuantity = (id, delta) => {
     setCart(prev =>
       prev.map(item => {
         if (item.id === id) {
           const maxStock = item.stock ?? 99;
           const proposedQty = item.quantity + delta;
-          // عدم التجاوز لأقل من 1 أو أعلى من المخزون المتاح
           const validQty = Math.min(Math.max(1, proposedQty), maxStock);
           return { ...item, quantity: validQty };
         }
@@ -150,72 +117,76 @@ export default function App() {
   const totalCartCount = cart.reduce((a, c) => a + c.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#2A2A2A] via-[#121212] to-[#080808] text-white font-sans">
-      {/* 1. الشريط العلوي */}
-      <TopBar currentLang={lang} />
-
-      {/* 2. الهيدر الرئيسي */}
-      <Navbar 
-        cartCount={totalCartCount} 
-        onOpenCart={() => setIsCartOpen(!isCartOpen)} 
-        currentLang={lang}
-        onToggleLang={toggleLanguage}
-        t={t}
-        onNavigateToShop={handleNavigateToShop}
-        onBackToHome={handleNavigateToHome}
-      />
-
-      {/* 3. عرض الصفحة حسب الحالة */}
-      <main>
-        {currentPage === 'home' && (
-          <>
-            <Hero currentLang={lang} />
-            <Categories currentLang={lang} />
-            <ProductGrid 
+    <BrowserRouter>
+      <Routes>
+        {/* 🔐 مسار لوحة التحكم المستقل */}
+        <Route 
+          path="/admin/*" 
+          element={
+            <AdminLayout 
               products={products} 
-              onAddToCart={addToCart} 
+              setProducts={setProducts} 
               currentLang={lang} 
-              onNavigateToShop={handleNavigateToShop}
-              onViewProduct={handleViewProduct}
             />
-          </>
-        )}
+          } 
+        />
 
-        {currentPage === 'shop' && (
-          <ShopPage 
-            products={products}
-            onAddToCart={addToCart}
-            currentLang={lang}
-            initialCategory={selectedCategory}
-            onBackToHome={handleNavigateToHome}
-            onViewProduct={handleViewProduct}
+        {/* 🛍️ مسارات المتجر مع تخطيط العرض الموحد */}
+        <Route element={
+          <StoreLayout 
+            cartCount={totalCartCount}
+            onOpenCart={() => setIsCartOpen(!isCartOpen)}
+            lang={lang}
+            toggleLanguage={toggleLanguage}
+            t={t}
+            cart={cart}
+            removeFromCart={removeFromCart}
+            updateQuantity={updateQuantity}
+            totalCartPrice={totalCartPrice}
+            isCartOpen={isCartOpen}
+            setIsCartOpen={setIsCartOpen}
+            setSelectedCategory={setSelectedCategory}
           />
-        )}
-
-        {currentPage === 'product' && (
-          <ProductDetailsPage 
-            product={selectedProduct}
-            onAddToCart={addToCart}
-            currentLang={lang}
-            onBack={handleGoBack}
-            onBackToShop={handleGoBack}
+        }>
+          <Route 
+            path="/" 
+            element={
+              <>
+                <Hero currentLang={lang} />
+                <Categories currentLang={lang} onSelectCategory={setSelectedCategory} />
+                <ProductGrid 
+                  products={products} 
+                  onAddToCart={addToCart} 
+                  currentLang={lang} 
+                />
+              </>
+            } 
           />
-        )}
-      </main>
 
-      {/* 4. سلة التسوق الجانبية */}
-      <CartDrawer 
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        cart={cart}
-        onRemove={removeFromCart}
-        onUpdateQuantity={updateQuantity}
-        totalPrice={totalCartPrice}
-        currentLang={lang}
-      />
+          <Route 
+            path="/shop" 
+            element={
+              <ShopPage 
+                products={products}
+                onAddToCart={addToCart}
+                currentLang={lang}
+                initialCategory={selectedCategory}
+              />
+            } 
+          />
 
-      {/* 5. تذييل الموقع */}
-      <Footer currentLang={lang} />
-    </div>
+          <Route 
+            path="/product/:id" 
+            element={
+              <ProductDetailsPage 
+                products={products}
+                onAddToCart={addToCart}
+                currentLang={lang}
+              />
+            } 
+          />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }

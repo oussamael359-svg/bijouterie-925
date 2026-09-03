@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Categories({ currentLang }) {
   const isRtl = currentLang === 'ar';
@@ -39,12 +40,12 @@ export default function Categories({ currentLang }) {
         </p>
       </div>
 
-      {/* شبكة التصنيفات - تم تثبيت الاتجاه بحاصرة dir="ltr" لتجنب تغير المواضع */}
+      {/* شبكة التصنيفات */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6" dir="ltr">
         {categories.map((cat) => (
-          <a
+          <Link
             key={cat.id}
-            href="#catalog"
+            to="/shop"
             className="group relative h-64 rounded-sm overflow-hidden border border-[#D4AF37]/30 block shadow-xl"
             dir={isRtl ? 'rtl' : 'ltr'}
           >
@@ -71,7 +72,7 @@ export default function Categories({ currentLang }) {
                 <i className={`fa-solid ${isRtl ? 'fa-arrow-left' : 'fa-arrow-right'} text-[10px]`}></i>
               </span>
             </div>
-          </a>
+          </Link>
         ))}
       </div>
     </section>
