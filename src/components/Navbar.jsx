@@ -129,7 +129,7 @@ export default function Navbar({
               <a 
                 href="#catalog" 
                 onClick={handleGoToCatalog}
-                className="hover:text-[#D4AF37] text-[#F3E5AB] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
+                className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
               >
                 <span className="font-bold">{t.nav.catalog}</span>
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>

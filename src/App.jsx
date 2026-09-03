@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { products } from './data/products';
 import { translations } from './data/translations';
 import TopBar from './components/TopBar';
@@ -6,7 +6,6 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Categories from './components/Categories';
 import ProductGrid from './components/ProductGrid';
-import SilverCareAndFAQ from './components/SilverCareAndFAQ';
 import ShopPage from './components/ShopPage';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
@@ -16,11 +15,27 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
 
-  // حالات التحكم في الصفحة الحالية والتصنيف المختار
-  const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'shop'
+  // 1. قراءة الصفحة الحالية من رابط الموقع لمنع العودة للرئيسية عند الـ Refresh
+  const [currentPage, setCurrentPage] = useState(() => {
+    return window.location.hash === '#shop' ? 'shop' : 'home';
+  });
   const [selectedCategory, setSelectedCategory] = useState('all');
 
   const t = translations[lang];
+
+  // 2. الاستماع لتغيرات الرابط وأزرار التراجع/التقدم في المتصفح
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#shop') {
+        setCurrentPage('shop');
+      } else {
+        setCurrentPage('home');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const toggleLanguage = () => {
     const nextLang = lang === 'ar' ? 'en' : 'ar';
@@ -29,10 +44,18 @@ export default function App() {
     document.documentElement.lang = nextLang;
   };
 
-  // دالة الانتقال إلى المتجر مع الفئة المحددة
+  // دالة الانتقال إلى المتجر
   const handleNavigateToShop = (category = 'all') => {
     setSelectedCategory(category);
     setCurrentPage('shop');
+    window.location.hash = 'shop';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // دالة العودة للرئيسية
+  const handleNavigateToHome = () => {
+    setCurrentPage('home');
+    window.location.hash = 'home';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -80,32 +103,32 @@ export default function App() {
         onToggleLang={toggleLanguage}
         t={t}
         onNavigateToShop={handleNavigateToShop}
-        onBackToHome={() => setCurrentPage('home')}
+        onBackToHome={handleNavigateToHome}
       />
 
- {/* 3. عرض الصفحة حسب الحالة */}
-<main>
-  {currentPage === 'home' ? (
-    <>
-      <Hero currentLang={lang} />
-      <Categories currentLang={lang} />
-      <ProductGrid 
-        products={products} 
-        onAddToCart={addToCart} 
-        currentLang={lang} 
-        onNavigateToShop={handleNavigateToShop}
-      />
-    </>
-  ) : (
-    <ShopPage 
-      products={products}
-      onAddToCart={addToCart}
-      currentLang={lang}
-      initialCategory={selectedCategory}
-      onBackToHome={() => setCurrentPage('home')}
-    />
-  )}
-</main>
+      {/* 3. عرض الصفحة حسب الحالة */}
+      <main>
+        {currentPage === 'home' ? (
+          <>
+            <Hero currentLang={lang} />
+            <Categories currentLang={lang} />
+            <ProductGrid 
+              products={products} 
+              onAddToCart={addToCart} 
+              currentLang={lang} 
+              onNavigateToShop={handleNavigateToShop}
+            />
+          </>
+        ) : (
+          <ShopPage 
+            products={products}
+            onAddToCart={addToCart}
+            currentLang={lang}
+            initialCategory={selectedCategory}
+            onBackToHome={handleNavigateToHome}
+          />
+        )}
+      </main>
 
       {/* 4. سلة التسوق الجانبية */}
       <CartDrawer 
