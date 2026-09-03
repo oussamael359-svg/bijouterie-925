@@ -83,31 +83,29 @@ export default function App() {
         onBackToHome={() => setCurrentPage('home')}
       />
 
-   {/* 3. عرض الصفحة حسب الحالة */}
-      <main>
-        {currentPage === 'home' ? (
-          <>
-            <Hero currentLang={lang} />
-            <Categories currentLang={lang} />
-            <ProductGrid 
-              products={products} 
-              onAddToCart={addToCart} 
-              currentLang={lang} 
-              onNavigateToShop={handleNavigateToShop}
-            />
-            {/* قسم العناية بالفضة والأسئلة الشائعة */}
-            <SilverCareAndFAQ currentLang={lang} />
-          </>
-        ) : (
-          <ShopPage 
-            products={products}
-            onAddToCart={addToCart}
-            currentLang={lang}
-            initialCategory={selectedCategory}
-            onBackToHome={() => setCurrentPage('home')}
-          />
-        )}
-      </main>
+ {/* 3. عرض الصفحة حسب الحالة */}
+<main>
+  {currentPage === 'home' ? (
+    <>
+      <Hero currentLang={lang} />
+      <Categories currentLang={lang} />
+      <ProductGrid 
+        products={products} 
+        onAddToCart={addToCart} 
+        currentLang={lang} 
+        onNavigateToShop={handleNavigateToShop}
+      />
+    </>
+  ) : (
+    <ShopPage 
+      products={products}
+      onAddToCart={addToCart}
+      currentLang={lang}
+      initialCategory={selectedCategory}
+      onBackToHome={() => setCurrentPage('home')}
+    />
+  )}
+</main>
 
       {/* 4. سلة التسوق الجانبية */}
       <CartDrawer 

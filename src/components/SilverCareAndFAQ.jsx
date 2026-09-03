@@ -103,46 +103,6 @@ export default function SilverCareAndFAQ({ currentLang }) {
         </div>
       </div>
 
-      {/* 2. قسم الأسئلة الشائعة (Accordion) */}
-      <div id="faq" className="max-w-3xl mx-auto scroll-mt-24">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#F3E5AB] tracking-widest uppercase">
-            {isRtl ? 'الأسئلة الشائعة' : 'Frequently Asked Questions'}
-          </h2>
-          <div className="w-16 h-0.5 bg-[#D4AF37] mx-auto mt-2 mb-3"></div>
-          <p className="text-xs text-gray-400">
-            {isRtl ? 'إجابات عن أكثر الاستفسارات تكراراً لدى عملاؤنا' : 'Everything you need to know about our products and services'}
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaqIndex === index;
-
-            return (
-              <div 
-                key={index}
-                className="bg-[#121212] border border-[#D4AF37]/20 rounded-sm overflow-hidden transition duration-200"
-              >
-                <button
-                  onClick={() => toggleFaq(index)}
-                  className="w-full text-right p-5 flex items-center justify-between gap-4 text-sm font-serif font-bold text-white hover:text-[#F3E5AB] transition duration-200 cursor-pointer"
-                  dir={isRtl ? 'rtl' : 'ltr'}
-                >
-                  <span className="flex-grow">{faq.q}</span>
-                  <i className={`fa-solid fa-chevron-down text-xs text-[#D4AF37] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}></i>
-                </button>
-
-                {isOpen && (
-                  <div className="p-5 pt-0 text-xs text-gray-300 leading-relaxed border-t border-white/5 bg-black/30" dir={isRtl ? 'rtl' : 'ltr'}>
-                    <p>{faq.a}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
 
     </section>
   );
