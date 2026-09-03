@@ -45,7 +45,7 @@ export default function Hero({ currentLang }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 border-t border-[#D4AF37]/20 max-w-5xl w-full text-gray-300 text-xs">
         <div className="flex flex-col md:flex-row items-center justify-center gap-3 p-3 bg-white/5 rounded-sm border border-white/5">
           <i className="fa-solid fa-gem text-[#D4AF37] text-2xl"></i>
-          <span className="font-semibold text-center md:text-start">{currentLang === 'ar' ? 'فضة 925 أصلية' : 'Pure 925 Silver'}</span>
+          <span className="font-semibold text-center md:text-start">{currentLang === 'ar' ? 'فضة أصلية' : 'Pure 925 Silver'}</span>
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-3 p-3 bg-white/5 rounded-sm border border-white/5">
