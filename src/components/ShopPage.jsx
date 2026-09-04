@@ -11,6 +11,9 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
 
   const isRtl = currentLang === 'ar';
   const [selectedCategory, setSelectedCategory] = useState(activeCategory);
+  
+  // 🔍 حالة شريط البحث
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     setSelectedCategory(activeCategory);
@@ -59,6 +62,30 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
         <div className="w-20 h-0.5 bg-[#D4AF37] mx-auto mt-3"></div>
       </div>
 
+      {/* 🔍 شريط البحث */}
+      <div className="max-w-xl mx-auto mb-10">
+        <div className="relative">
+          <span className={`absolute inset-y-0 ${isRtl ? 'right-4' : 'left-4'} flex items-center pointer-events-none text-[#D4AF37]`}>
+            <i className="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={isRtl ? 'ابحث عن منتج بالاسم أو الوصف...' : 'Search products by name or description...'}
+            className={`w-full bg-[#1A1A1A] border border-white/10 focus:border-[#D4AF37] text-white text-sm rounded-xs py-3.5 ${isRtl ? 'pr-12 pl-10' : 'pl-12 pr-10'} outline-none transition duration-200 placeholder-gray-500 shadow-lg`}
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className={`absolute inset-y-0 ${isRtl ? 'left-4' : 'right-4'} flex items-center text-gray-400 hover:text-white cursor-pointer`}
+            >
+              <i className="fa-solid fa-xmark text-base"></i>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* أزرار الفلترة السريعة */}
       <div className="flex flex-wrap justify-center gap-3 mb-16">
         {categories.map((cat) => (
@@ -82,7 +109,13 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
       <div className="space-y-16">
         {visibleSections.map((section) => {
           const sectionProducts = products
-            .filter(p => p.category === section.id)
+            .filter(p => {
+              const matchesCategory = p.category === section.id;
+              const matchesSearch = searchQuery.trim() === '' || 
+                p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+              return matchesCategory && matchesSearch;
+            })
             .sort((a, b) => {
               const aStock = a.stock ?? 1;
               const bStock = b.stock ?? 1;
@@ -193,10 +226,18 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
           );
         })}
 
-        {/* حالة عدم وجود منتجات */}
-        {visibleSections.every(sec => products.filter(p => p.category === sec.id).length === 0) && (
+        {/* حالة عدم وجود منتجات مطابقة */}
+        {visibleSections.every(section => {
+          return products.filter(p => {
+            const matchesCategory = p.category === section.id;
+            const matchesSearch = searchQuery.trim() === '' || 
+              p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCategory && matchesSearch;
+          }).length === 0;
+        }) && (
           <div className="text-center text-gray-400 py-16 bg-[#121212]/50 border border-white/5 rounded-xs">
-            {isRtl ? 'لا توجد منتجات متوفرة حالياً في هذا التصنيف.' : 'No products currently available in this category.'}
+            {isRtl ? 'لا توجد منتجات تطابق بحثك الحالي.' : 'No products match your current search.'}
           </div>
         )}
       </div>
