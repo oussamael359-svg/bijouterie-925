@@ -20,19 +20,23 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeCategory]);
 
-  // بناء قائمة التصنيفات ديناميكياً بناءً على ما تم إضافته في لوحة التحكم
+  // بناء قائمة التصنيفات ديناميكياً مع دعم كافة مسميات الخصائص المحتملة
   const categories = [
     { id: 'all', name: isRtl ? 'الكل' : 'All' },
     ...(propCategories || []).map(cat => ({
       id: cat.id,
-      name: isRtl ? (cat.titleAr || cat.name) : (cat.titleEn || cat.name)
+      name: isRtl 
+        ? (cat.titleAr || cat.name || cat.title || cat.id) 
+        : (cat.titleEn || cat.name || cat.title || cat.id)
     }))
   ];
 
   // الأقسام المستهدفة للعرض بشكل ديناميكي
   const categorySections = (propCategories || []).map(cat => ({
     id: cat.id,
-    name: isRtl ? `قسم ${cat.titleAr || cat.name}` : `${cat.titleEn || cat.name} Collection`
+    name: isRtl 
+      ? `قسم ${cat.titleAr || cat.name || cat.title || cat.id}` 
+      : `${cat.titleEn || cat.name || cat.title || cat.id} Collection`
   }));
 
   // تحديد الأقسام التي ستظهر (إما الكل أو قسم واحد محدد)
@@ -108,21 +112,19 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
       {/* عرض المنتجات مقسمة حسب الفئات */}
       <div className="space-y-16">
         {visibleSections.map((section) => {
-          const sectionProducts = products
-            .filter(p => {
-              const matchesCategory = p.category === section.id;
-              const matchesSearch = searchQuery.trim() === '' || 
-                p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                p.description?.toLowerCase().includes(searchQuery.toLowerCase());
-              return matchesCategory && matchesSearch;
-            })
-            .sort((a, b) => {
-              const aStock = a.stock ?? 1;
-              const bStock = b.stock ?? 1;
-              if (aStock > 0 && bStock <= 0) return -1;
-              if (aStock <= 0 && bStock > 0) return 1;
-              return 0;
-            });
+          const sectionProducts = (products || []).filter(p => {
+            const matchesCategory = String(p.category).trim() === String(section.id).trim();
+            const matchesSearch = searchQuery.trim() === '' || 
+              p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+              p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCategory && matchesSearch;
+          }).sort((a, b) => {
+            const aStock = a.stock ?? 1;
+            const bStock = b.stock ?? 1;
+            if (aStock > 0 && bStock <= 0) return -1;
+            if (aStock <= 0 && bStock > 0) return 1;
+            return 0;
+          });
 
           if (sectionProducts.length === 0) return null;
 
@@ -140,7 +142,7 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
               {/* شبكة منتجات القسم */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {sectionProducts.map((item) => {
-                  const isOutOfStock = item.stock !== undefined && item.stock <= 0;
+                  const isOutOfStock = item.stock !== undefined && Number(item.stock) <= 0;
 
                   return (
                     <div 
@@ -161,7 +163,7 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                       {/* صورة المنتوج */}
                       <div className="relative h-64 overflow-hidden bg-black/40">
                         <img 
-                          src={item.image} 
+                          src={item.image || 'https://via.placeholder.com/300'} 
                           alt={item.name} 
                           className={`w-full h-full object-cover transition duration-500 ${
                             isOutOfStock ? 'opacity-50' : 'group-hover:scale-105 opacity-90 group-hover:opacity-100'
@@ -187,13 +189,13 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                             {item.name}
                           </h3>
                           <p className="text-xs text-gray-500 mb-3 line-clamp-2">
-                            {item.description}
+                            {item.description || (isRtl ? 'منتج فضة فاخر عالي الجودة' : 'High quality silver product')}
                           </p>
                         </div>
 
                         <div className="pt-3 border-t border-white/10 flex items-center justify-between mt-auto">
                           <span className={`text-sm font-bold ${isOutOfStock ? 'text-gray-500' : 'text-[#D4AF37]'}`}>
-                            {item.price} {isRtl ? 'د.م' : 'MAD'}
+                            {item.price} {isRtl ? 'ر.س' : 'SAR'}
                           </span>
                           <button
                             disabled={isOutOfStock}
@@ -228,8 +230,8 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
 
         {/* حالة عدم وجود منتجات مطابقة */}
         {visibleSections.every(section => {
-          return products.filter(p => {
-            const matchesCategory = p.category === section.id;
+          return (products || []).filter(p => {
+            const matchesCategory = String(p.category).trim() === String(section.id).trim();
             const matchesSearch = searchQuery.trim() === '' || 
               p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
               p.description?.toLowerCase().includes(searchQuery.toLowerCase());

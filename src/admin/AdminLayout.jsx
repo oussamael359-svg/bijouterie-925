@@ -65,7 +65,14 @@ export default function AdminLayout({ products, setProducts, categories, setCate
         );
 
       case 'products':
-        return <ProductsView products={products} setProducts={setProducts} currentLang={currentLang} />;
+        return (
+          <ProductsView 
+            products={products} 
+            setProducts={setProducts} 
+            categories={categories} 
+            currentLang={currentLang} 
+          />
+        );
 
       case 'visitors':
         return (
