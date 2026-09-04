@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import AdminSidebar from './AdminSidebar';
+import AdminLogin from './AdminLogin';
 import ProductsView from './views/ProductsView';
 import CategoriesView from './views/CategoriesView';
 
 export default function AdminLayout({ products, setProducts, categories, setCategories, onBackToHome, currentLang, setCurrentLang }) {
+  // التحقق من حالة تسجيل الدخول عبر sessionStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isRtl = currentLang === 'ar';
 
   const handleLogout = () => {
     sessionStorage.removeItem('admin_logged_in');
+    setIsLoggedIn(false);
     if (onBackToHome) onBackToHome();
   };
+
+  // إذا لم يتم تسجيل الدخول، يتم عرض صفحة تسجيل الدخول فقط
+  if (!isLoggedIn) {
+    return <AdminLogin onLogin={() => setIsLoggedIn(true)} currentLang={currentLang} />;
+  }
 
   const renderActiveView = () => {
     switch (activeTab) {

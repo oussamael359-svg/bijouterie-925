@@ -54,7 +54,7 @@ export default function AdminSidebar({
               <h2 className="text-base font-serif font-bold text-[#F3E5AB]">
                 {isRtl ? 'لوحة التحكم' : 'Admin Panel'}
               </h2>
-              <p className="text-[10px] text-gray-400 mt-0.5">Sharp Edge Studio</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Bijouterie925</p>
             </div>
 
             <button 

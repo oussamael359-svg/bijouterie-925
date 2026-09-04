@@ -127,7 +127,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔐 مسار لوحة التحكم المستقل مع تمرير التصنيفات */}
+        {/* 🔐 مسار لوحة التحكم المستقل مع تمرير التصنيفات ودالة تغيير اللغة */}
         <Route 
           path="/admin/*" 
           element={
@@ -137,6 +137,7 @@ export default function App() {
               categories={categories}
               setCategories={setCategories}
               currentLang={lang} 
+              setCurrentLang={setLang}
             />
           } 
         />
