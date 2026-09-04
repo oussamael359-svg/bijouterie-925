@@ -5,6 +5,7 @@ export default function CategoriesView({ categories, setCategories, products, cu
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(''); // حالة شريط البحث
   const [formData, setFormData] = useState({
     id: '',
     titleAr: '',
@@ -83,6 +84,16 @@ export default function CategoriesView({ categories, setCategories, products, cu
     setCategories(categories.filter(c => c.id !== id));
   };
 
+  // تصفية التصنيفات بناءً على شريط البحث
+  const filteredCategories = (categories || []).filter(cat => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    const idMatch = cat.id?.toLowerCase().includes(query);
+    const titleArMatch = (cat.titleAr || cat.title || '').toLowerCase().includes(query);
+    const titleEnMatch = (cat.titleEn || cat.title || '').toLowerCase().includes(query);
+    return idMatch || titleArMatch || titleEnMatch;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -103,6 +114,30 @@ export default function CategoriesView({ categories, setCategories, products, cu
         </button>
       </div>
 
+      {/* شريط البحث المطور */}
+      <div className="relative">
+        <span className={`absolute inset-y-0 ${isRtl ? 'right-3' : 'left-3'} flex items-center pointer-events-none text-gray-400`}>
+          <i className="fa-solid fa-magnifying-glass text-xs"></i>
+        </span>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={isRtl ? 'البحث برمز التصنيف أو الاسم (عربي/إنجليزي)...' : 'Search by category ID or name...'}
+          className={`w-full bg-[#121212] border border-[#D4AF37]/20 rounded-xs py-2.5 text-xs text-white placeholder-gray-500 focus:border-[#D4AF37] outline-none transition ${isRtl ? 'pr-9 pl-8' : 'pl-9 pr-8'}`}
+          dir={isRtl ? 'rtl' : 'ltr'}
+        />
+        {searchQuery && (
+          <button 
+            onClick={() => setSearchQuery('')}
+            className={`absolute inset-y-0 ${isRtl ? 'left-3' : 'right-3'} flex items-center text-gray-400 hover:text-white cursor-pointer text-xs`}
+            title={isRtl ? 'مسح البحث' : 'Clear search'}
+          >
+            <i className="fa-solid fa-xmark"></i>
+          </button>
+        )}
+      </div>
+
       {/* جدول التصنيفات */}
       <div className="bg-[#121212] border border-[#D4AF37]/20 rounded-sm overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
@@ -118,55 +153,63 @@ export default function CategoriesView({ categories, setCategories, products, cu
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 text-xs">
-              {categories.map((cat) => {
-                const productCount = products.filter(p => p.category === cat.id).length;
-                return (
-                  <tr key={cat.id} className="hover:bg-white/[0.02] transition">
-                    <td className="p-4">
-                      <div className="w-10 h-10 rounded overflow-hidden bg-black/50 border border-white/10">
-                        {cat.image ? (
-                          <img src={cat.image} alt={cat.titleAr} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-600">No Img</div>
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-4 font-mono text-[#F3E5AB]">{cat.id}</td>
-                    <td className="p-4 font-bold text-white">
-                      <div>{cat.titleAr || cat.title}</div>
-                      <div className="text-[10px] text-gray-400 font-normal">{cat.titleEn || cat.title}</div>
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded-xs text-[10px] font-bold ${cat.showOnHome !== false ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-gray-500/10 text-gray-400 border border-gray-500/30'}`}>
-                        {cat.showOnHome !== false ? (isRtl ? 'ظاهر' : 'Visible') : (isRtl ? 'مخفي' : 'Hidden')}
-                      </span>
-                    </td>
-                    <td className="p-4">
-                      <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-xs text-gray-300">
-                        {productCount} {isRtl ? 'منتج' : 'items'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(cat)}
-                          className="p-1.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xs transition cursor-pointer"
-                          title={isRtl ? 'تعديل' : 'Edit'}
-                        >
-                          <i className="fa-solid fa-pen text-xs"></i>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(cat.id)}
-                          className="p-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white rounded-xs transition cursor-pointer"
-                          title={isRtl ? 'حذف' : 'Delete'}
-                        >
-                          <i className="fa-solid fa-trash text-xs"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((cat) => {
+                  const productCount = products.filter(p => p.category === cat.id).length;
+                  return (
+                    <tr key={cat.id} className="hover:bg-white/[0.02] transition">
+                      <td className="p-4">
+                        <div className="w-10 h-10 rounded overflow-hidden bg-black/50 border border-white/10">
+                          {cat.image ? (
+                            <img src={cat.image} alt={cat.titleAr} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[10px] text-gray-600">No Img</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4 font-mono text-[#F3E5AB]">{cat.id}</td>
+                      <td className="p-4 font-bold text-white">
+                        <div>{cat.titleAr || cat.title}</div>
+                        <div className="text-[10px] text-gray-400 font-normal">{cat.titleEn || cat.title}</div>
+                      </td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded-xs text-[10px] font-bold ${cat.showOnHome !== false ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-gray-500/10 text-gray-400 border border-gray-500/30'}`}>
+                          {cat.showOnHome !== false ? (isRtl ? 'ظاهر' : 'Visible') : (isRtl ? 'مخفي' : 'Hidden')}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <span className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-xs text-gray-300">
+                          {productCount} {isRtl ? 'منتج' : 'items'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleOpenEdit(cat)}
+                            className="p-1.5 bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white rounded-xs transition cursor-pointer"
+                            title={isRtl ? 'تعديل' : 'Edit'}
+                          >
+                            <i className="fa-solid fa-pen text-xs"></i>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(cat.id)}
+                            className="p-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white rounded-xs transition cursor-pointer"
+                            title={isRtl ? 'حذف' : 'Delete'}
+                          >
+                            <i className="fa-solid fa-trash text-xs"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="6" className="p-8 text-center text-gray-400 text-xs">
+                    {isRtl ? 'لا توجد تصنيفات مطابقة للبحث.' : 'No categories found matching your search.'}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
