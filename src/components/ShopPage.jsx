@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-export default function ShopPage({ products, onAddToCart, currentLang, initialCategory, onBackToHome, onViewProduct }) {
+export default function ShopPage({ products, onAddToCart, currentLang, initialCategory, onBackToHome, onViewProduct, categories: propCategories }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // قراءة الفئة إما من رابط الـ Query Parameters (الفوتر) أو من الـ props
+  // قراءة الفئة إما من رابط الـ Query Parameters أو من الـ props
   const queryCategory = searchParams.get('category');
   const activeCategory = queryCategory || initialCategory || 'all';
 
@@ -14,23 +14,23 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
 
   useEffect(() => {
     setSelectedCategory(activeCategory);
-    // إرجاع الشاشة إلى أعلى الصفحة بسلاسة عند تغيير الفئة أو الدخول للمتجر
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeCategory]);
 
+  // بناء قائمة التصنيفات ديناميكياً بناءً على ما تم إضافته في لوحة التحكم
   const categories = [
     { id: 'all', name: isRtl ? 'الكل' : 'All' },
-    { id: 'rings', name: isRtl ? 'خواتم' : 'Rings' },
-    { id: 'necklaces', name: isRtl ? 'سلاسل وقلائد' : 'Necklaces' },
-    { id: 'bracelets', name: isRtl ? 'أساور' : 'Bracelets' },
+    ...(propCategories || []).map(cat => ({
+      id: cat.id,
+      name: isRtl ? (cat.titleAr || cat.name) : (cat.titleEn || cat.name)
+    }))
   ];
 
-  // الأقسام المستهدفة للعرض
-  const categorySections = [
-    { id: 'rings', name: isRtl ? 'قسم الخواتم' : 'Rings Collection' },
-    { id: 'necklaces', name: isRtl ? 'قسم السلاسل والقلائد' : 'Necklaces Collection' },
-    { id: 'bracelets', name: isRtl ? 'قسم الأساور' : 'Bracelets Collection' },
-  ];
+  // الأقسام المستهدفة للعرض بشكل ديناميكي
+  const categorySections = (propCategories || []).map(cat => ({
+    id: cat.id,
+    name: isRtl ? `قسم ${cat.titleAr || cat.name}` : `${cat.titleEn || cat.name} Collection`
+  }));
 
   // تحديد الأقسام التي ستظهر (إما الكل أو قسم واحد محدد)
   const visibleSections = selectedCategory === 'all'
@@ -113,7 +113,6 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                     <div 
                       key={item.id}
                       onClick={() => {
-                        // عند الضغط على أي مكان في البطاقة سيتم فتح تفاصيل المنتج
                         if (onViewProduct) {
                           onViewProduct(item);
                         } else {
@@ -166,7 +165,6 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                           <button
                             disabled={isOutOfStock}
                             onClick={(e) => {
-                              // منع انتقال الحدث للبطاقة حتى لا يفتح صفحة المنتج عند الضغط على زر الشراء
                               e.stopPropagation();
                               if (!isOutOfStock) {
                                 onAddToCart(item);

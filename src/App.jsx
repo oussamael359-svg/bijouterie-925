@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { products as initialProducts } from './data/products';
 import { translations } from './data/translations';
@@ -56,14 +56,45 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
   
-  const [products, setProducts] = useState(initialProducts);
+  // 🏷️ المنتجات مع الحفظ الدائم في localStorage
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_products');
+      return saved ? JSON.parse(saved) : initialProducts;
+    } catch (e) {
+      return initialProducts;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('store_products', JSON.stringify(products));
+    } catch (e) {}
+  }, [products]);
   
-  // 🏷️ حالة التصنيفات (قيم افتراضية أولية)
-  const [categories, setCategories] = useState([
-    { id: 'rings', titleAr: 'خواتم', titleEn: 'Rings', descAr: 'خواتم فاخرة بتصميم عصري', descEn: 'Luxury modern rings' },
-    { id: 'necklaces', titleAr: 'سلاسل وقلائد', titleEn: 'Necklaces', descAr: 'سلاسل فضية وذهبية راقية', descEn: 'Fine silver and gold necklaces' },
-    { id: 'bracelets', titleAr: 'أساور', titleEn: 'Bracelets', descAr: 'تشكيلة أساور مميزة', descEn: 'Unique bracelet collection' }
-  ]);
+  // 🏷️ حالة التصنيفات مع الحفظ الدائم في localStorage لكي لا تختفي أبداً عند التحديث
+  const [categories, setCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_categories');
+      return saved ? JSON.parse(saved) : [
+        { id: 'rings', titleAr: 'خواتم', titleEn: 'Rings', descAr: 'خواتم فاخرة بتصميم عصري', descEn: 'Luxury modern rings' },
+        { id: 'necklaces', titleAr: 'سلاسل وقلائد', titleEn: 'Necklaces', descAr: 'سلاسل فضية وذهبية راقية', descEn: 'Fine silver and gold necklaces' },
+        { id: 'bracelets', titleAr: 'أساور', titleEn: 'Bracelets', descAr: 'تشكيلة أساور مميزة', descEn: 'Unique bracelet collection' }
+      ];
+    } catch (e) {
+      return [
+        { id: 'rings', titleAr: 'خواتم', titleEn: 'Rings', descAr: 'خواتم فاخرة بتصميم عصري', descEn: 'Luxury modern rings' },
+        { id: 'necklaces', titleAr: 'سلاسل وقلائد', titleEn: 'Necklaces', descAr: 'سلاسل فضية وذهبية راقية', descEn: 'Fine silver and gold necklaces' },
+        { id: 'bracelets', titleAr: 'أساور', titleEn: 'Bracelets', descAr: 'تشكيلة أساور مميزة', descEn: 'Unique bracelet collection' }
+      ];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('store_categories', JSON.stringify(categories));
+    } catch (e) {}
+  }, [categories]);
 
   const [selectedCategory, setSelectedCategory] = useState('all');
   
@@ -103,14 +134,25 @@ export default function App() {
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
+  // 🛠️ تصحيح الحذف ليعتمد على المعرف (id) والمقاس (selectedSize) معاً بدقة
+  const removeFromCart = (id, selectedSize) => {
+    setCart(prev => prev.filter(item => {
+      if (selectedSize !== undefined && selectedSize !== null) {
+        return !(item.id === id && item.selectedSize === selectedSize);
+      }
+      return item.id !== id;
+    }));
   };
 
-  const updateQuantity = (id, delta) => {
+  // 🛠️ تصحيح تحديث الكمية ليميز بين المقاسات المختلفة لنفس المنتج
+  const updateQuantity = (id, delta, selectedSize) => {
     setCart(prev =>
       prev.map(item => {
-        if (item.id === id) {
+        const isMatch = (selectedSize !== undefined && selectedSize !== null)
+          ? (item.id === id && item.selectedSize === selectedSize)
+          : (item.id === id);
+
+        if (isMatch) {
           const maxStock = item.stock ?? 99;
           const proposedQty = item.quantity + delta;
           const validQty = Math.min(Math.max(1, proposedQty), maxStock);
@@ -127,7 +169,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔐 مسار لوحة التحكم المستقل مع تمرير التصنيفات ودالة تغيير اللغة */}
+        {/* 🔐 مسار لوحة التحكم المستقل */}
         <Route 
           path="/admin/*" 
           element={
@@ -184,6 +226,7 @@ export default function App() {
                 onAddToCart={addToCart}
                 currentLang={lang}
                 initialCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory} 
                 categories={categories}
               />
             } 
