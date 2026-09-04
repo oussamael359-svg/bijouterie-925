@@ -17,7 +17,7 @@ import AdminLayout from './admin/AdminLayout';
 function StoreLayout({ 
   cartCount, onOpenCart, lang, toggleLanguage, t, 
   cart, removeFromCart, updateQuantity, totalCartPrice, 
-  isCartOpen, setIsCartOpen, setSelectedCategory 
+  isCartOpen, setIsCartOpen, setSelectedCategory, categories 
 }) {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#2A2A2A] via-[#121212] to-[#080808] text-white font-sans flex flex-col justify-between">
@@ -46,7 +46,7 @@ function StoreLayout({
         currentLang={lang}
       />
 
-      <Footer currentLang={lang} setSelectedCategory={setSelectedCategory} />
+      <Footer currentLang={lang} setSelectedCategory={setSelectedCategory} categories={categories} />
     </div>
   );
 }
@@ -57,6 +57,14 @@ export default function App() {
   const [lang, setLang] = useState('ar');
   
   const [products, setProducts] = useState(initialProducts);
+  
+  // 🏷️ حالة التصنيفات (قيم افتراضية أولية)
+  const [categories, setCategories] = useState([
+    { id: 'rings', titleAr: 'خواتم', titleEn: 'Rings', descAr: 'خواتم فاخرة بتصميم عصري', descEn: 'Luxury modern rings' },
+    { id: 'necklaces', titleAr: 'سلاسل وقلائد', titleEn: 'Necklaces', descAr: 'سلاسل فضية وذهبية راقية', descEn: 'Fine silver and gold necklaces' },
+    { id: 'bracelets', titleAr: 'أساور', titleEn: 'Bracelets', descAr: 'تشكيلة أساور مميزة', descEn: 'Unique bracelet collection' }
+  ]);
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   
   const t = translations[lang];
@@ -119,13 +127,15 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔐 مسار لوحة التحكم المستقل */}
+        {/* 🔐 مسار لوحة التحكم المستقل مع تمرير التصنيفات */}
         <Route 
           path="/admin/*" 
           element={
             <AdminLayout 
               products={products} 
               setProducts={setProducts} 
+              categories={categories}
+              setCategories={setCategories}
               currentLang={lang} 
             />
           } 
@@ -146,6 +156,7 @@ export default function App() {
             isCartOpen={isCartOpen}
             setIsCartOpen={setIsCartOpen}
             setSelectedCategory={setSelectedCategory}
+            categories={categories}
           />
         }>
           <Route 
@@ -153,11 +164,12 @@ export default function App() {
             element={
               <>
                 <Hero currentLang={lang} />
-                <Categories currentLang={lang} onSelectCategory={setSelectedCategory} />
+                <Categories currentLang={lang} onSelectCategory={setSelectedCategory} categories={categories} />
                 <ProductGrid 
                   products={products} 
                   onAddToCart={addToCart} 
                   currentLang={lang} 
+                  selectedCategory={selectedCategory}
                 />
               </>
             } 
@@ -171,6 +183,7 @@ export default function App() {
                 onAddToCart={addToCart}
                 currentLang={lang}
                 initialCategory={selectedCategory}
+                categories={categories}
               />
             } 
           />

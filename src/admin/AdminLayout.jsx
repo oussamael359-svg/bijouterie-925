@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
 import AdminSidebar from './AdminSidebar';
 import ProductsView from './views/ProductsView';
-// سنقوم بإنشاء هذه الملفات تباعاً
-// import DashboardView from './views/DashboardView';
-// import CategoriesView from './views/CategoriesView';
-// import VisitorsView from './views/VisitorsView';
-// import TrashView from './views/TrashView';
+import CategoriesView from './views/CategoriesView';
 
-export default function AdminLayout({ products, setProducts, onBackToHome, currentLang }) {
-  // اجعل الداشبورد هي الصفحة الافتتاحية عند فتح الأدمن
+export default function AdminLayout({ products, setProducts, categories, setCategories, onBackToHome, currentLang, setCurrentLang }) {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const isRtl = currentLang === 'ar';
 
   const handleLogout = () => {
     sessionStorage.removeItem('admin_logged_in');
-    onBackToHome();
+    if (onBackToHome) onBackToHome();
   };
 
   const renderActiveView = () => {
@@ -28,7 +24,6 @@ export default function AdminLayout({ products, setProducts, onBackToHome, curre
             <p className="text-xs text-gray-400">
               {isRtl ? 'مرحباً بك في لوحة تحكم Sharp Edge Studio. هنا ملخص سريع لحالة متجرك.' : 'Welcome to Sharp Edge Studio admin panel.'}
             </p>
-            {/* كروت الإحصائيات السريعة */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-[#121212] border border-white/10 p-5 rounded-sm">
                 <p className="text-xs text-gray-400">{isRtl ? 'إجمالي المنتجات' : 'Total Products'}</p>
@@ -52,14 +47,12 @@ export default function AdminLayout({ products, setProducts, onBackToHome, curre
 
       case 'categories':
         return (
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-[#F3E5AB] mb-2">
-              {isRtl ? 'إدارة التصنيفات' : 'Categories Management'}
-            </h1>
-            <p className="text-xs text-gray-400 mb-6">
-              {isRtl ? 'قريباً: إضافة وتعديل وحذف تصنيفات المتجر (خواتم، سلاسل، أساور...)' : 'Coming soon: Manage store categories.'}
-            </p>
-          </div>
+          <CategoriesView 
+            categories={categories} 
+            setCategories={setCategories} 
+            products={products} 
+            currentLang={currentLang} 
+          />
         );
 
       case 'products':
@@ -95,18 +88,26 @@ export default function AdminLayout({ products, setProducts, onBackToHome, curre
   };
 
   return (
-    <div className="bg-[#0a0a0a] min-h-screen text-white flex">
-      {/* السايد بار بالترتيب الجديد */}
+    <div className="bg-[#0a0a0a] min-h-screen text-white relative flex">
+      {/* السايد بار في اليسار دائماً */}
       <AdminSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         currentLang={currentLang}
+        setCurrentLang={setCurrentLang}
         onBackToHome={onBackToHome}
         onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
       />
 
-      {/* منطقة المحتوى المتغيرة */}
-      <main className="flex-1 p-8 overflow-y-auto max-h-screen">
+      {/* منطقة المحتوى تتأقلم مع مساحة السايد بار وتدعم اتجاه اللغة */}
+      <main 
+        className={`flex-1 p-8 overflow-y-auto max-h-screen transition-all duration-300 ${
+          isSidebarOpen ? 'md:ml-64' : 'ml-0'
+        }`}
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
         <div className="max-w-6xl mx-auto">
           {renderActiveView()}
         </div>

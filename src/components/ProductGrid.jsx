@@ -159,10 +159,10 @@ export default function ProductGrid({ products, onAddToCart, currentLang }) {
               })}
             </div>
 
-            {/* زر تصفح تشكيلة التصنيف الكاملة */}
+            {/* زر تصفح تشكيلة التصنيف الكاملة مع تمرير الـ id الخاص بالقسم */}
             <div className="text-center pt-2">
               <button
-                onClick={() => navigate('/shop')}
+                onClick={() => navigate(`/shop?category=${sec.id}`)}
                 className="inline-flex items-center gap-2 border border-[#D4AF37]/60 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black px-6 py-2.5 text-xs font-bold tracking-widest uppercase transition duration-300 rounded-xs group cursor-pointer"
               >
                 <span>{isRtl ? 'تصفح تشكيلة التصنيف الكاملة' : 'View Full Category'}</span>
