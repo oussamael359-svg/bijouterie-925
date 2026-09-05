@@ -8,7 +8,8 @@ export default function AdminSidebar({
   onBackToHome, 
   onLogout, 
   isOpen, 
-  setIsOpen 
+  setIsOpen,
+  deletedProducts = [] // استلام قائمة المحذوفات لعرض العدد
 }) {
   const isRtl = currentLang === 'ar';
 
@@ -17,7 +18,13 @@ export default function AdminSidebar({
     { id: 'categories', labelAr: 'التصنيفات', labelEn: 'Categories', icon: 'fa-tags' },
     { id: 'products', labelAr: 'المنتجات', labelEn: 'Products', icon: 'fa-boxes-stacked' },
     { id: 'visitors', labelAr: 'الزوار', labelEn: 'Visitors', icon: 'fa-users' },
-    { id: 'trash', labelAr: 'سلة المهملات', labelEn: 'Trash', icon: 'fa-trash-can' },
+    { 
+      id: 'trash', 
+      labelAr: 'سلة المهملات', 
+      labelEn: 'Trash', 
+      icon: 'fa-trash-can', 
+      badge: deletedProducts.length // إضافة عدد العناصر المحذوفة
+    },
   ];
 
   return (
@@ -77,14 +84,25 @@ export default function AdminSidebar({
                     setActiveTab(item.id);
                     if (window.innerWidth < 768) setIsOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xs text-xs font-bold transition duration-200 cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xs text-xs font-bold transition duration-200 cursor-pointer ${
                     isActive
                       ? 'bg-[#D4AF37] text-black shadow-lg'
                       : 'text-gray-300 hover:bg-white/5 hover:text-white'
                   }`}
                 >
-                  <i className={`fa-solid ${item.icon} text-sm w-4`}></i>
-                  <span>{isRtl ? item.labelAr : item.labelEn}</span>
+                  <div className="flex items-center gap-3">
+                    <i className={`fa-solid ${item.icon} text-sm w-4`}></i>
+                    <span>{isRtl ? item.labelAr : item.labelEn}</span>
+                  </div>
+
+                  {/* شارة (Badge) تعرض عدد العناصر المحذوفة إذا كانت أكبر من صفر */}
+                  {item.id === 'trash' && item.badge > 0 && (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      isActive ? 'bg-black text-[#D4AF37]' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  )}
                 </button>
               );
             })}

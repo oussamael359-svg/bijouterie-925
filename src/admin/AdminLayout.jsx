@@ -3,12 +3,17 @@ import AdminSidebar from './AdminSidebar';
 import AdminLogin from './AdminLogin';
 import ProductsView from './views/ProductsView';
 import CategoriesView from './views/CategoriesView';
+import TrashView from './views/TrashView'; // استيراد صفحة سلة المهملات الجديدة
 
 export default function AdminLayout({ products, setProducts, categories, setCategories, onBackToHome, currentLang, setCurrentLang }) {
   // التحقق من حالة تسجيل الدخول عبر sessionStorage
   const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
+  // حالة المنتجات المحذوفة (سلة المهملات)
+  const [deletedProducts, setDeletedProducts] = useState([]);
+
   const isRtl = currentLang === 'ar';
 
   const handleLogout = () => {
@@ -70,7 +75,9 @@ export default function AdminLayout({ products, setProducts, categories, setCate
             products={products} 
             setProducts={setProducts} 
             categories={categories} 
-            currentLang={currentLang} 
+            currentLang={currentLang}
+            deletedProducts={deletedProducts}
+            setDeletedProducts={setDeletedProducts}
           />
         );
 
@@ -88,14 +95,14 @@ export default function AdminLayout({ products, setProducts, categories, setCate
 
       case 'trash':
         return (
-          <div>
-            <h1 className="text-2xl font-serif font-bold text-[#F3E5AB] mb-2">
-              {isRtl ? 'سلة المهملات' : 'Trash Bin'}
-            </h1>
-            <p className="text-xs text-gray-400 mb-6">
-              {isRtl ? 'قريباً: استعادة المنتجات المحذوفة أو حذفها نهائياً.' : 'Coming soon: Restore deleted items.'}
-            </p>
-          </div>
+          <TrashView 
+            deletedProducts={deletedProducts}
+            setDeletedProducts={setDeletedProducts}
+            products={products}
+            setProducts={setProducts}
+            categories={categories}
+            currentLang={currentLang}
+          />
         );
 
       default:
@@ -105,7 +112,7 @@ export default function AdminLayout({ products, setProducts, categories, setCate
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-white relative flex">
-      {/* السايد بار في اليسار دائماً */}
+      {/* السايد بار في اليسار دائماً مع تمرير عدد المحذوفات */}
       <AdminSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -115,6 +122,7 @@ export default function AdminLayout({ products, setProducts, categories, setCate
         onLogout={handleLogout}
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
+        deletedProducts={deletedProducts}
       />
 
       {/* منطقة المحتوى تتأقلم مع مساحة السايد بار وتدعم اتجاه اللغة */}

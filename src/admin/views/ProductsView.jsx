@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
-export default function ProductsView({ products, setProducts, categories = [], currentLang }) {
+export default function ProductsView({ 
+  products, 
+  setProducts, 
+  categories = [], 
+  currentLang,
+  deletedProducts = [],
+  setDeletedProducts 
+}) {
   const isRtl = currentLang === 'ar';
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -135,9 +142,12 @@ export default function ProductsView({ products, setProducts, categories = [], c
     });
   };
 
-  // دالة حذف المنتج
-  const handleDelete = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+  // دالة حذف المنتج (إزالته من القائمة وإرساله إلى سلة المهملات في الشريط الجانبي)
+  const handleDelete = (product) => {
+    setProducts(products.filter(p => p.id !== product.id));
+    if (setDeletedProducts) {
+      setDeletedProducts(prev => [product, ...prev]);
+    }
   };
 
   return (
@@ -239,7 +249,7 @@ export default function ProductsView({ products, setProducts, categories = [], c
                          categories.find(c => c.id === product.category)?.name || 
                          product.category}
                       </td>
-                      <td className="p-3.5 text-[#D4AF37] font-bold">{product.price} {isRtl ? 'ر.س' : 'SAR'}</td>
+                      <td className="p-3.5 text-[#D4AF37] font-bold">{product.price} {isRtl ? 'د.م' : 'MAD'}</td>
                       <td className="p-3.5">
                         <span className={`px-2 py-0.5 rounded-xs text-[10px] font-bold ${
                           (product.stock ?? 1) > 0 
@@ -260,9 +270,9 @@ export default function ProductsView({ products, setProducts, categories = [], c
                         >
                           <i className="fa-solid fa-pen-to-square text-xs"></i>
                         </button>
-                        {/* زر الحذف */}
+                        {/* زر الحذف (ينقل المنتج إلى سلة المهملات في السايد بار) */}
                         <button
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => handleDelete(product)}
                           className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 p-1.5 rounded-xs transition cursor-pointer"
                           title={isRtl ? 'حذف' : 'Delete'}
                         >
