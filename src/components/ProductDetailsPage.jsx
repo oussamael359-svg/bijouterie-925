@@ -123,7 +123,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                 </span>
               ) : (
                 <span className="text-xs text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-800 px-2.5 py-0.5 rounded-xs">
-                  {isRtl ? `متوفر في المخزون (${maxStock})` : `In Stock (${maxStock})`}
+                  {isRtl ? `متوفر في المخزون ` : `In Stock`}
                 </span>
               )}
             </div>
