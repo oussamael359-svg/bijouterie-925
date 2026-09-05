@@ -114,9 +114,11 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
         {visibleSections.map((section) => {
           const sectionProducts = (products || []).filter(p => {
             const matchesCategory = String(p.category).trim() === String(section.id).trim();
-            const matchesSearch = searchQuery.trim() === '' || 
-              p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-              p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            
+            // البحث الشامل في الأسماء والأوصاف بالعربية والإنجليزية
+            const fullText = `${p.nameAr || p.name || ''} ${p.nameEn || ''} ${p.descriptionAr || p.description || ''} ${p.descriptionEn || ''}`.toLowerCase();
+            const matchesSearch = searchQuery.trim() === '' || fullText.includes(searchQuery.toLowerCase());
+            
             return matchesCategory && matchesSearch;
           }).sort((a, b) => {
             const aStock = a.stock ?? 1;
@@ -143,6 +145,10 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {sectionProducts.map((item) => {
                   const isOutOfStock = item.stock !== undefined && Number(item.stock) <= 0;
+                  
+                  // جلب الاسم والوصف بناءً على اللغة الحالية
+                  const displayName = isRtl ? (item.nameAr || item.name || '') : (item.nameEn || item.name || '');
+                  const displayDesc = isRtl ? (item.descriptionAr || item.description || '') : (item.descriptionEn || item.description || '');
 
                   return (
                     <div 
@@ -164,7 +170,7 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                       <div className="relative h-64 overflow-hidden bg-black/40">
                         <img 
                           src={item.image || 'https://via.placeholder.com/300'} 
-                          alt={item.name} 
+                          alt={displayName} 
                           className={`w-full h-full object-cover transition duration-500 ${
                             isOutOfStock ? 'opacity-50' : 'group-hover:scale-105 opacity-90 group-hover:opacity-100'
                           }`}
@@ -186,16 +192,16 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
                           <h3 className={`font-serif font-bold text-base mb-1 transition duration-200 ${
                             isOutOfStock ? 'text-gray-400' : 'text-white group-hover:text-[#F3E5AB]'
                           }`}>
-                            {item.name}
+                            {displayName}
                           </h3>
                           <p className="text-xs text-gray-500 mb-3 line-clamp-2">
-                            {item.description || (isRtl ? 'منتج فضة فاخر عالي الجودة' : 'High quality silver product')}
+                            {displayDesc || (isRtl ? 'منتج فضة فاخر عالي الجودة' : 'High quality silver product')}
                           </p>
                         </div>
 
                         <div className="pt-3 border-t border-white/10 flex items-center justify-between mt-auto">
                           <span className={`text-sm font-bold ${isOutOfStock ? 'text-gray-500' : 'text-[#D4AF37]'}`}>
-                            {item.price} {isRtl ? 'ر.س' : 'SAR'}
+                            {item.price} {isRtl ? 'د.م' : 'MAD'}
                           </span>
                           <button
                             disabled={isOutOfStock}
@@ -232,9 +238,8 @@ export default function ShopPage({ products, onAddToCart, currentLang, initialCa
         {visibleSections.every(section => {
           return (products || []).filter(p => {
             const matchesCategory = String(p.category).trim() === String(section.id).trim();
-            const matchesSearch = searchQuery.trim() === '' || 
-              p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-              p.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            const fullText = `${p.nameAr || p.name || ''} ${p.nameEn || ''} ${p.descriptionAr || p.description || ''} ${p.descriptionEn || ''}`.toLowerCase();
+            const matchesSearch = searchQuery.trim() === '' || fullText.includes(searchQuery.toLowerCase());
             return matchesCategory && matchesSearch;
           }).length === 0;
         }) && (
