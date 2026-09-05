@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 
-export default function CategoriesView({ categories, setCategories, products, currentLang }) {
+export default function CategoriesView({ 
+  categories, 
+  setCategories, 
+  products, 
+  deletedCategories = [], 
+  setDeletedCategories, 
+  currentLang 
+}) {
   const isRtl = currentLang === 'ar';
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(''); // حالة شريط البحث
+  const [searchQuery, setSearchQuery] = useState('');
   const [formData, setFormData] = useState({
     id: '',
     titleAr: '',
@@ -16,14 +25,12 @@ export default function CategoriesView({ categories, setCategories, products, cu
     showOnHome: true
   });
 
-  // فتح نافذة الإضافة
   const handleOpenAdd = () => {
     setEditingCategory(null);
     setFormData({ id: '', titleAr: '', titleEn: '', descAr: '', descEn: '', image: '', showOnHome: true });
     setIsModalOpen(true);
   };
 
-  // فتح نافذة التعديل
   const handleOpenEdit = (cat) => {
     setEditingCategory(cat);
     setFormData({
@@ -38,7 +45,6 @@ export default function CategoriesView({ categories, setCategories, products, cu
     setIsModalOpen(true);
   };
 
-  // رفع الصورة محلياً وتحويلها إلى Base64
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -50,16 +56,13 @@ export default function CategoriesView({ categories, setCategories, products, cu
     }
   };
 
-  // حفظ (إضافة أو تحديث)
   const handleSave = (e) => {
     e.preventDefault();
     if (!formData.id || !formData.titleAr) return;
 
     if (editingCategory) {
-      // تحديث
       setCategories(categories.map(c => c.id === editingCategory.id ? { ...formData } : c));
     } else {
-      // إضافة جديد
       if (categories.some(c => c.id === formData.id)) {
         alert(isRtl ? 'معرف التصنيف (ID) موجود مسبقاً!' : 'Category ID already exists!');
         return;
@@ -69,22 +72,31 @@ export default function CategoriesView({ categories, setCategories, products, cu
     setIsModalOpen(false);
   };
 
-  // حذف تصنيف
-  const handleDelete = (id) => {
-    const count = products.filter(p => p.category === id).length;
-    if (count > 0) {
-      if (!window.confirm(isRtl ? `هذا التصنيف يحتوي على ${count} منتج. هل أنت متأكد من الحذف؟` : `This category contains ${count} products. Are you sure?`)) {
-        return;
-      }
-    } else {
-      if (!window.confirm(isRtl ? 'هل أنت متأكد من حذف هذا التصنيف؟' : 'Are you sure you want to delete this category?')) {
-        return;
-      }
-    }
-    setCategories(categories.filter(c => c.id !== id));
+  const handleOpenDelete = (cat) => {
+    setCategoryToDelete(cat);
+    setIsDeleteModalOpen(true);
   };
 
-  // تصفية التصنيفات بناءً على شريط البحث
+  // نقل التصنيف إلى سلة المهملات
+  const confirmDelete = () => {
+    if (!categoryToDelete) return;
+    
+    // إزالته من قائمة التصنيفات النشطة
+    setCategories(categories.filter(c => c.id !== categoryToDelete.id));
+    
+    // إضافته إلى سلة مهملات التصنيفات
+    if (setDeletedCategories) {
+      setDeletedCategories([categoryToDelete, ...deletedCategories]);
+    }
+
+    setIsDeleteModalOpen(false);
+    setCategoryToDelete(null);
+  };
+
+  const productsCountToDelete = categoryToDelete 
+    ? products.filter(p => p.category === categoryToDelete.id).length 
+    : 0;
+
   const filteredCategories = (categories || []).filter(cat => {
     const query = searchQuery.toLowerCase().trim();
     if (!query) return true;
@@ -114,7 +126,6 @@ export default function CategoriesView({ categories, setCategories, products, cu
         </button>
       </div>
 
-      {/* شريط البحث المطور */}
       <div className="relative">
         <span className={`absolute inset-y-0 ${isRtl ? 'right-3' : 'left-3'} flex items-center pointer-events-none text-gray-400`}>
           <i className="fa-solid fa-magnifying-glass text-xs"></i>
@@ -138,7 +149,6 @@ export default function CategoriesView({ categories, setCategories, products, cu
         )}
       </div>
 
-      {/* جدول التصنيفات */}
       <div className="bg-[#121212] border border-[#D4AF37]/20 rounded-sm overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-right" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -192,7 +202,7 @@ export default function CategoriesView({ categories, setCategories, products, cu
                             <i className="fa-solid fa-pen text-xs"></i>
                           </button>
                           <button
-                            onClick={() => handleDelete(cat.id)}
+                            onClick={() => handleOpenDelete(cat)}
                             className="p-1.5 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white rounded-xs transition cursor-pointer"
                             title={isRtl ? 'حذف' : 'Delete'}
                           >
@@ -309,7 +319,6 @@ export default function CategoriesView({ categories, setCategories, products, cu
                 </div>
               </div>
 
-              {/* حقل صورة التصنيف (رفع ملف أو رابط URL) */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-300">
                   {isRtl ? 'صورة التصنيف (رابط URL أو رفع ملف)' : 'Category Image (URL or File Upload)'}
@@ -335,7 +344,6 @@ export default function CategoriesView({ categories, setCategories, products, cu
                 )}
               </div>
 
-              {/* خيار الإظهار في الصفحة الرئيسية */}
               <div className="flex items-center gap-3 pt-2 bg-white/[0.02] p-3 rounded-xs border border-white/5">
                 <input
                   type="checkbox"
@@ -365,6 +373,55 @@ export default function CategoriesView({ categories, setCategories, products, cu
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* نافذة تأكيد الحذف (النقل إلى سلة المهملات) */}
+      {isDeleteModalOpen && categoryToDelete && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-[#121212] border border-red-500/40 w-full max-w-md rounded-sm p-6 shadow-2xl relative text-right" dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className="flex items-center gap-3 mb-4 text-red-400">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center shrink-0">
+                <i className="fa-solid fa-triangle-exclamation text-base"></i>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">{isRtl ? 'نقل إلى سلة المهملات' : 'Move to Trash'}</h3>
+                <p className="text-[11px] text-gray-400 font-mono">ID: {categoryToDelete.id}</p>
+              </div>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 p-3 rounded-xs mb-6 text-xs space-y-2">
+              <p className="text-gray-200">
+                {isRtl 
+                  ? `هل أنت متأكد من رغبتك في نقل التصنيف "${categoryToDelete.titleAr || categoryToDelete.title}" إلى سلة المهملات؟` 
+                  : `Are you sure you want to move category "${categoryToDelete.titleEn || categoryToDelete.title}" to trash?`}
+              </p>
+              {productsCountToDelete > 0 && (
+                <p className="text-red-400 font-bold bg-red-500/10 p-2 rounded-xs border border-red-500/20">
+                  {isRtl 
+                    ? `⚠️ تنبيه: هذا التصنيف يحتوي على ${productsCountToDelete} منتج مرتبط به!` 
+                    : `⚠️ Warning: This category contains ${productsCountToDelete} associated products!`}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2 border border-white/20 text-gray-300 hover:bg-white/5 rounded-xs text-xs font-bold transition cursor-pointer"
+              >
+                {isRtl ? 'إلغاء' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="px-5 py-2 bg-red-500 text-white hover:bg-red-600 rounded-xs text-xs font-bold transition cursor-pointer shadow-lg"
+              >
+                {isRtl ? 'نقل للسلة' : 'Move to Trash'}
+              </button>
+            </div>
           </div>
         </div>
       )}

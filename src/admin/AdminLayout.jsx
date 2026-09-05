@@ -3,7 +3,7 @@ import AdminSidebar from './AdminSidebar';
 import AdminLogin from './AdminLogin';
 import ProductsView from './views/ProductsView';
 import CategoriesView from './views/CategoriesView';
-import TrashView from './views/TrashView'; // استيراد صفحة سلة المهملات الجديدة
+import TrashView from './views/TrashView';
 
 export default function AdminLayout({ products, setProducts, categories, setCategories, onBackToHome, currentLang, setCurrentLang }) {
   // التحقق من حالة تسجيل الدخول عبر sessionStorage
@@ -11,8 +11,9 @@ export default function AdminLayout({ products, setProducts, categories, setCate
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // حالة المنتجات المحذوفة (سلة المهملات)
+  // حالة المنتجات والتصنيفات المحذوفة (سلة المهملات)
   const [deletedProducts, setDeletedProducts] = useState([]);
+  const [deletedCategories, setDeletedCategories] = useState([]);
 
   const isRtl = currentLang === 'ar';
 
@@ -65,6 +66,8 @@ export default function AdminLayout({ products, setProducts, categories, setCate
             categories={categories} 
             setCategories={setCategories} 
             products={products} 
+            deletedCategories={deletedCategories}
+            setDeletedCategories={setDeletedCategories}
             currentLang={currentLang} 
           />
         );
@@ -101,6 +104,9 @@ export default function AdminLayout({ products, setProducts, categories, setCate
             products={products}
             setProducts={setProducts}
             categories={categories}
+            setCategories={setCategories}
+            deletedCategories={deletedCategories}
+            setDeletedCategories={setDeletedCategories}
             currentLang={currentLang}
           />
         );
@@ -112,7 +118,7 @@ export default function AdminLayout({ products, setProducts, categories, setCate
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-white relative flex">
-      {/* السايد بار في اليسار دائماً مع تمرير عدد المحذوفات */}
+      {/* السايد بار في اليسار دائماً مع تمرير المحذوفات */}
       <AdminSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -123,6 +129,7 @@ export default function AdminLayout({ products, setProducts, categories, setCate
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
         deletedProducts={deletedProducts}
+        deletedCategories={deletedCategories}
       />
 
       {/* منطقة المحتوى تتأقلم مع مساحة السايد بار وتدعم اتجاه اللغة */}
