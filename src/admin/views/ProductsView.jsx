@@ -4,8 +4,9 @@ export default function ProductsView({ products, setProducts, categories = [], c
   const isRtl = currentLang === 'ar';
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
-  // حالة نموذج إضافة منتج جديد (دعم اللغتين العربية والإنجليزية للاسم والوصف)
+  // حالة نموذج إضافة/تعديل منتج (دعم اللغتين العربية والإنجليزية للاسم والوصف)
   const [formData, setFormData] = useState({
     nameAr: '',
     nameEn: '',
@@ -17,12 +18,12 @@ export default function ProductsView({ products, setProducts, categories = [], c
     image: ''
   });
 
-  // تحديث التصنيف الافتراضي تلقائياً عند فتح النافذة أو توفر التصنيفات
+  // تحديث التصنيف الافتراضي تلقائياً عند فتح النافذة للإضافة وعدم وجود تصنيف محدد
   useEffect(() => {
-    if (categories.length > 0) {
+    if (categories.length > 0 && !formData.category) {
       setFormData(prev => ({
         ...prev,
-        category: prev.category || categories[0].id
+        category: categories[0].id
       }));
     }
   }, [categories, isModalOpen]);
@@ -45,26 +46,9 @@ export default function ProductsView({ products, setProducts, categories = [], c
     }
   };
 
-  // دالة إضافة المنتج
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    if (!formData.nameAr.trim() && !formData.nameEn.trim()) return;
-
-    const newProduct = {
-      id: Date.now().toString(),
-      name: formData.nameAr || formData.nameEn, // توافق مع الإصدارات السابقة
-      nameAr: formData.nameAr,
-      nameEn: formData.nameEn,
-      category: formData.category || (categories[0]?.id ?? 'general'),
-      price: parseFloat(formData.price) || 0,
-      stock: parseInt(formData.stock) || 1,
-      description: formData.descriptionAr || formData.descriptionEn,
-      descriptionAr: formData.descriptionAr,
-      descriptionEn: formData.descriptionEn,
-      image: formData.image.trim() || 'https://via.placeholder.com/150'
-    };
-
-    setProducts([newProduct, ...products]);
+  // فتح نافذة الإضافة
+  const handleOpenAddModal = () => {
+    setEditingProduct(null);
     setFormData({
       nameAr: '',
       nameEn: '',
@@ -75,7 +59,80 @@ export default function ProductsView({ products, setProducts, categories = [], c
       descriptionEn: '',
       image: ''
     });
+    setIsModalOpen(true);
+  };
+
+  // فتح نافذة التعديل مع تعبئة بيانات المنتج الحالي
+  const handleOpenEditModal = (product) => {
+    setEditingProduct(product);
+    setFormData({
+      nameAr: product.nameAr || product.name || '',
+      nameEn: product.nameEn || '',
+      category: product.category || categories[0]?.id || '',
+      price: product.price ?? '',
+      stock: product.stock ?? '',
+      descriptionAr: product.descriptionAr || product.description || '',
+      descriptionEn: product.descriptionEn || '',
+      image: product.image || ''
+    });
+    setIsModalOpen(true);
+  };
+
+  // دالة حفظ المنتج (إضافة أو تعديل)
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+    if (!formData.nameAr.trim() && !formData.nameEn.trim()) return;
+
+    if (editingProduct) {
+      // تعديل منتج موجود
+      setProducts(products.map(p => {
+        if (p.id === editingProduct.id) {
+          return {
+            ...p,
+            name: formData.nameAr || formData.nameEn,
+            nameAr: formData.nameAr,
+            nameEn: formData.nameEn,
+            category: formData.category || (categories[0]?.id ?? 'general'),
+            price: parseFloat(formData.price) || 0,
+            stock: parseInt(formData.stock) || 1,
+            description: formData.descriptionAr || formData.descriptionEn,
+            descriptionAr: formData.descriptionAr,
+            descriptionEn: formData.descriptionEn,
+            image: formData.image.trim() || 'https://via.placeholder.com/150'
+          };
+        }
+        return p;
+      }));
+    } else {
+      // إضافة منتج جديد
+      const newProduct = {
+        id: Date.now().toString(),
+        name: formData.nameAr || formData.nameEn,
+        nameAr: formData.nameAr,
+        nameEn: formData.nameEn,
+        category: formData.category || (categories[0]?.id ?? 'general'),
+        price: parseFloat(formData.price) || 0,
+        stock: parseInt(formData.stock) || 1,
+        description: formData.descriptionAr || formData.descriptionEn,
+        descriptionAr: formData.descriptionAr,
+        descriptionEn: formData.descriptionEn,
+        image: formData.image.trim() || 'https://via.placeholder.com/150'
+      };
+      setProducts([newProduct, ...products]);
+    }
+
     setIsModalOpen(false);
+    setEditingProduct(null);
+    setFormData({
+      nameAr: '',
+      nameEn: '',
+      category: categories[0]?.id || '',
+      price: '',
+      stock: '',
+      descriptionAr: '',
+      descriptionEn: '',
+      image: ''
+    });
   };
 
   // دالة حذف المنتج
@@ -85,7 +142,6 @@ export default function ProductsView({ products, setProducts, categories = [], c
 
   return (
     <div className="space-y-6 relative">
-      {/* تخصيص شامل لأشرطة التمرير لتتطابق مع الهوية البصرية الداكنة والذهبية */}
       <style>{`
         * {
           scrollbar-width: thin;
@@ -118,7 +174,7 @@ export default function ProductsView({ products, setProducts, categories = [], c
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenAddModal}
           className="bg-[#D4AF37] hover:bg-[#c19d30] text-black text-xs font-bold px-4 py-2.5 rounded-sm transition flex items-center gap-2 cursor-pointer"
         >
           <i className="fa-solid fa-plus text-xs"></i>
@@ -196,6 +252,15 @@ export default function ProductsView({ products, setProducts, categories = [], c
                         </span>
                       </td>
                       <td className="p-3.5 text-center space-x-2">
+                        {/* زر التعديل (قلم) */}
+                        <button
+                          onClick={() => handleOpenEditModal(product)}
+                          className="text-[#D4AF37] hover:text-[#c19d30] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 p-1.5 rounded-xs transition cursor-pointer"
+                          title={isRtl ? 'تعديل' : 'Edit'}
+                        >
+                          <i className="fa-solid fa-pen-to-square text-xs"></i>
+                        </button>
+                        {/* زر الحذف */}
                         <button
                           onClick={() => handleDelete(product.id)}
                           className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 p-1.5 rounded-xs transition cursor-pointer"
@@ -219,13 +284,15 @@ export default function ProductsView({ products, setProducts, categories = [], c
         </div>
       </div>
 
-      {/* نافذة (Modal) إضافة منتج جديد */}
+      {/* نافذة (Modal) إضافة أو تعديل منتج */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-[#121212] border border-white/15 p-6 rounded-sm w-full max-w-lg shadow-2xl space-y-4 my-8">
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <h3 className="text-lg font-serif font-bold text-[#F3E5AB]">
-                {isRtl ? 'إضافة منتج جديد' : 'Add New Product'}
+                {editingProduct 
+                  ? (isRtl ? 'تعديل المنتج' : 'Edit Product') 
+                  : (isRtl ? 'إضافة منتج جديد' : 'Add New Product')}
               </h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
@@ -235,7 +302,7 @@ export default function ProductsView({ products, setProducts, categories = [], c
               </button>
             </div>
 
-            <form onSubmit={handleAddProduct} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
               {/* اسم المنتج بالعربية والإنجليزية جنباً إلى جنب */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -383,7 +450,9 @@ export default function ProductsView({ products, setProducts, categories = [], c
                   type="submit"
                   className="bg-[#D4AF37] hover:bg-[#c19d30] text-black font-bold px-5 py-2 rounded-xs transition cursor-pointer"
                 >
-                  {isRtl ? 'حفظ المنتج' : 'Save Product'}
+                  {editingProduct 
+                    ? (isRtl ? 'تعديل المنتج' : 'Update Product') 
+                    : (isRtl ? 'حفظ المنتج' : 'Save Product')}
                 </button>
               </div>
             </form>

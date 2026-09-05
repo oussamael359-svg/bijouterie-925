@@ -40,6 +40,15 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
     );
   }
 
+  // 🌐 دعم اللغتين (العربية والإنجليزية) متوافقة مع تحديثات لوحة التحكم (Dashboard)
+  const displayName = isRtl 
+    ? (product.nameAr || product.name || '') 
+    : (product.nameEn || product.name || '');
+
+  const displayDescription = isRtl 
+    ? (product.descriptionAr || product.description || '') 
+    : (product.descriptionEn || product.description || '');
+
   // 📦 التحقق من حالة المخزون والحد الأقصى
   const maxStock = product.stock ?? 0;
   const isOutOfStock = maxStock === 0;
@@ -52,6 +61,8 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
     if (isOutOfStock) return;
     onAddToCart({
       ...product,
+      name: displayName,
+      description: displayDescription,
       selectedSize,
       quantity
     });
@@ -73,8 +84,8 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
         <div className="space-y-4">
           <div className="relative bg-[#121212] border border-[#D4AF37]/30 rounded-sm overflow-hidden shadow-2xl group">
             <img 
-              src={product.image} 
-              alt={product.name} 
+              src={product.image || 'https://via.placeholder.com/450'} 
+              alt={displayName} 
               className="w-full h-[450px] md:h-[520px] object-cover object-center group-hover:scale-105 transition duration-500"
             />
             <span className={`absolute top-4 ${isRtl ? 'right-4' : 'left-4'} bg-[#D4AF37] text-black text-xs font-bold px-3 py-1 uppercase tracking-widest rounded-xs shadow-md`} dir="ltr">
@@ -91,7 +102,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
               <span>{isRtl ? 'فضة إسترلينية نقية 925' : 'Pure 925 Sterling Silver'}</span>
             </div>
             <h1 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-wide">
-              {product.name}
+              {displayName}
             </h1>
             
             {/* 💵 عرض السعر وحالة التوفر بالمخزن */}
@@ -112,7 +123,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                 </span>
               ) : (
                 <span className="text-xs text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-800 px-2.5 py-0.5 rounded-xs">
-                  {isRtl ? `متوفر في المخزون` : `In Stock`}
+                  {isRtl ? `متوفر في المخزون (${maxStock})` : `In Stock (${maxStock})`}
                 </span>
               )}
             </div>
@@ -126,7 +137,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
               {isRtl ? 'وصف القطعة' : 'Description'}
             </h3>
             <p className="text-sm text-gray-300 leading-relaxed font-light">
-              {product.description || (isRtl 
+              {displayDescription || (isRtl 
                 ? 'قطعة فاخرة مصنوعة بدقة عالية من الفضة الإسترلينية 925، مصممة لتدوم وتضفي لمسة من الأنفة والأصالة على إطلالتك.' 
                 : 'A luxurious piece crafted with precision from 925 Sterling Silver, designed for elegance and durability.')}
             </p>
@@ -216,7 +227,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
             </div>
             <div className="flex items-center gap-3">
               <i className="fa-solid fa-hand-holding-dollar text-lg text-[#D4AF37]"></i>
-              <span>{isRtl ? 'الدفع عند الاستلام' : 'Pay On Delivery'}</span>
+              <span>{isRtl ? 'الدفع عبر التحويل البنكي' : 'Bank Transfer Payment'}</span>
             </div>
             <div className="flex items-center gap-3">
               <i className="fa-solid fa-box-open text-lg text-[#D4AF37]"></i>
