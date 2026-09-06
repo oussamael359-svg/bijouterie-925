@@ -13,11 +13,12 @@ import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 import AdminLayout from './admin/AdminLayout';
 
-// 📐 مكون التخطيط العام للمتجر (يحتوي على الهيدر والفوتر والسلة الثابتة)
+// 📐 مكون التخطيط العام للمتجر
 function StoreLayout({ 
   cartCount, onOpenCart, lang, toggleLanguage, t, 
   cart, removeFromCart, updateQuantity, totalCartPrice, 
-  isCartOpen, setIsCartOpen, setSelectedCategory, categories 
+  isCartOpen, setIsCartOpen, setSelectedCategory, categories,
+  orders, setOrders, setCart
 }) {
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#2A2A2A] via-[#121212] to-[#080808] text-white font-sans flex flex-col justify-between">
@@ -31,7 +32,6 @@ function StoreLayout({
           t={t}
         />
         <main>
-          {/* هنا سيتم عرض الصفحة الحالية (الرئيسية، المتجر، أو تفاصيل المنتج) */}
           <Outlet />
         </main>
       </div>
@@ -44,6 +44,9 @@ function StoreLayout({
         onUpdateQuantity={updateQuantity}
         totalPrice={totalCartPrice}
         currentLang={lang}
+        setCartItems={setCart}
+        orders={orders}
+        setOrders={setOrders}
       />
 
       <Footer currentLang={lang} setSelectedCategory={setSelectedCategory} categories={categories} />
@@ -72,7 +75,23 @@ export default function App() {
     } catch (e) {}
   }, [products]);
   
-  // 🏷️ حالة التصنيفات مع الحفظ الدائم في localStorage لكي لا تختفي أبداً عند التحديث
+  // 📦 حالة الطلبات مع الحفظ الدائم في localStorage
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('store_orders', JSON.stringify(orders));
+    } catch (e) {}
+  }, [orders]);
+
+  // 🏷️ حالة التصنيفات مع الحفظ الدائم في localStorage
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('store_categories');
@@ -134,7 +153,6 @@ export default function App() {
     setIsCartOpen(true);
   };
 
-  // 🛠️ تصحيح الحذف ليعتمد على المعرف (id) والمقاس (selectedSize) معاً بدقة
   const removeFromCart = (id, selectedSize) => {
     setCart(prev => prev.filter(item => {
       if (selectedSize !== undefined && selectedSize !== null) {
@@ -144,7 +162,6 @@ export default function App() {
     }));
   };
 
-  // 🛠️ تصحيح تحديث الكمية ليميز بين المقاسات المختلفة لنفس المنتج
   const updateQuantity = (id, delta, selectedSize) => {
     setCart(prev =>
       prev.map(item => {
@@ -178,13 +195,15 @@ export default function App() {
               setProducts={setProducts} 
               categories={categories}
               setCategories={setCategories}
+              orders={orders}
+              setOrders={setOrders}
               currentLang={lang} 
               setCurrentLang={setLang}
             />
           } 
         />
 
-        {/* 🛍️ مسارات المتجر مع تخطيط العرض الموحد */}
+        {/* 🛍️ مسارات المتجر */}
         <Route element={
           <StoreLayout 
             cartCount={totalCartCount}
@@ -193,6 +212,7 @@ export default function App() {
             toggleLanguage={toggleLanguage}
             t={t}
             cart={cart}
+            setCart={setCart}
             removeFromCart={removeFromCart}
             updateQuantity={updateQuantity}
             totalCartPrice={totalCartPrice}
@@ -200,6 +220,8 @@ export default function App() {
             setIsCartOpen={setIsCartOpen}
             setSelectedCategory={setSelectedCategory}
             categories={categories}
+            orders={orders}
+            setOrders={setOrders}
           />
         }>
           <Route 
