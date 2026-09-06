@@ -9,14 +9,23 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
     const targetOrder = orders.find(o => o.id === orderId);
     if (!targetOrder) return;
 
+    // رسالة تنبيه تأكيد تغيير الحالة
+    const confirmMessage = newStatus === 'completed'
+      ? (isRtl ? 'هل أنت متأكد من تأكيد هذا الطلب وخصم المنتجات من المخزون؟' : 'Are you sure you want to mark this order as completed and deduct stock?')
+      : (isRtl ? 'هل أنت متأكد من تغيير حالة الطلب إلى قيد الانتظار؟' : 'Are you sure you want to change the order status back to pending?');
+
+    if (!window.confirm(confirmMessage)) return;
+
     // خصم الكميات من المخزون عند تحويل الحالة إلى مكتمل لأول مرة
     if (newStatus === 'completed' && targetOrder.status !== 'completed' && setProducts) {
       setProducts(prevProducts => {
         return prevProducts.map(product => {
-          const orderedItem = targetOrder.items?.find(item => item.id === product.id);
+          const orderedItem = targetOrder.items?.find(
+            item => String(item.id) === String(product.id) || String(item.productId) === String(product.id)
+          );
           if (orderedItem) {
             const currentStock = product.stock ?? 1;
-            const newStock = Math.max(0, currentStock - (orderedItem.quantity || 1));
+            const newStock = Math.max(0, currentStock - (Number(orderedItem.quantity) || 1));
             return { ...product, stock: newStock };
           }
           return product;
