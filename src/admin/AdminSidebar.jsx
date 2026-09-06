@@ -9,7 +9,8 @@ export default function AdminSidebar({
   onLogout, 
   isOpen, 
   setIsOpen,
-  deletedProducts = [] // استلام قائمة المحذوفات لعرض العدد
+  deletedProducts = [], // قائمة المحذوفات لعرض العدد
+  orders = [] // استلام الطلبات لعرض عددها اختياريًا
 }) {
   const isRtl = currentLang === 'ar';
 
@@ -17,13 +18,19 @@ export default function AdminSidebar({
     { id: 'dashboard', labelAr: 'الداشبورد (الإحصائيات)', labelEn: 'Dashboard', icon: 'fa-gauge-high' },
     { id: 'categories', labelAr: 'التصنيفات', labelEn: 'Categories', icon: 'fa-tags' },
     { id: 'products', labelAr: 'المنتجات', labelEn: 'Products', icon: 'fa-boxes-stacked' },
-    { id: 'visitors', labelAr: 'الزوار', labelEn: 'Visitors', icon: 'fa-users' },
+    { 
+      id: 'orders', 
+      labelAr: 'الطلبات', 
+      labelEn: 'Orders', 
+      icon: 'fa-receipt', 
+      badge: orders?.length || 0 
+    },
     { 
       id: 'trash', 
       labelAr: 'سلة المهملات', 
       labelEn: 'Trash', 
       icon: 'fa-trash-can', 
-      badge: deletedProducts.length // إضافة عدد العناصر المحذوفة
+      badge: deletedProducts.length 
     },
   ];
 
@@ -95,10 +102,10 @@ export default function AdminSidebar({
                     <span>{isRtl ? item.labelAr : item.labelEn}</span>
                   </div>
 
-                  {/* شارة (Badge) تعرض عدد العناصر المحذوفة إذا كانت أكبر من صفر */}
-                  {item.id === 'trash' && item.badge > 0 && (
+                  {/* شارة (Badge) تعرض عدد الطلبات أو المحذوفات إذا كانت أكبر من صفر */}
+                  {item.badge > 0 && (
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? 'bg-black text-[#D4AF37]' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                      isActive ? 'bg-black text-[#D4AF37]' : item.id === 'trash' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30'
                     }`}>
                       {item.badge}
                     </span>

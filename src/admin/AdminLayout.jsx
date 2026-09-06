@@ -4,8 +4,9 @@ import AdminLogin from './AdminLogin';
 import ProductsView from './views/ProductsView';
 import CategoriesView from './views/CategoriesView';
 import TrashView from './views/TrashView';
+import OrdersView from './views/OrdersView';
 
-export default function AdminLayout({ products, setProducts, categories, setCategories, onBackToHome, currentLang, setCurrentLang }) {
+export default function AdminLayout({ products, setProducts, categories, setCategories, orders, setOrders, onBackToHome, currentLang, setCurrentLang }) {
   // التحقق من حالة تسجيل الدخول عبر sessionStorage
   const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -39,7 +40,7 @@ export default function AdminLayout({ products, setProducts, categories, setCate
             <p className="text-xs text-gray-400">
               {isRtl ? 'مرحباً بك في لوحة تحكم Sharp Edge Studio. هنا ملخص سريع لحالة متجرك.' : 'Welcome to Sharp Edge Studio admin panel.'}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
               <div className="bg-[#121212] border border-white/10 p-5 rounded-sm">
                 <p className="text-xs text-gray-400">{isRtl ? 'إجمالي المنتجات' : 'Total Products'}</p>
                 <p className="text-3xl font-bold text-white mt-2">{products.length}</p>
@@ -56,8 +57,21 @@ export default function AdminLayout({ products, setProducts, categories, setCate
                   {products.filter(p => (p.stock ?? 1) <= 0).length}
                 </p>
               </div>
+              <div className="bg-[#121212] border border-[#D4AF37]/30 p-5 rounded-sm">
+                <p className="text-xs text-gray-400">{isRtl ? 'إجمالي الطلبات' : 'Total Orders'}</p>
+                <p className="text-3xl font-bold text-[#D4AF37] mt-2">{orders?.length || 0}</p>
+              </div>
             </div>
           </div>
+        );
+
+      case 'orders':
+        return (
+          <OrdersView 
+            orders={orders} 
+            setOrders={setOrders} 
+            currentLang={currentLang} 
+          />
         );
 
       case 'categories':
@@ -130,6 +144,7 @@ export default function AdminLayout({ products, setProducts, categories, setCate
         setIsOpen={setIsSidebarOpen}
         deletedProducts={deletedProducts}
         deletedCategories={deletedCategories}
+        orders={orders}
       />
 
       {/* منطقة المحتوى تتأقلم مع مساحة السايد بار وتدعم اتجاه اللغة */}
