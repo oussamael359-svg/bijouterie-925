@@ -10,6 +10,7 @@ export default function ProductsView({
 }) {
   const isRtl = currentLang === 'ar';
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
@@ -35,10 +36,12 @@ export default function ProductsView({
     }
   }, [categories, isModalOpen]);
 
-  // تصفية المنتجات بناءً على البحث (في الاسم بالعربية أو الإنجليزية)
+  // تصفية المنتجات بناءً على البحث (في الاسم بالعربية أو الإنجليزية) والتصنيف المحدد
   const filteredProducts = products.filter(p => {
     const fullName = `${p.nameAr || p.name || ''} ${p.nameEn || ''}`.toLowerCase();
-    return fullName.includes(searchTerm.toLowerCase());
+    const matchesSearch = fullName.includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
   // دالة التعامل مع رفع الصورة من الجهاز وتحويلها إلى Base64
@@ -192,16 +195,34 @@ export default function ProductsView({
         </button>
       </div>
 
-      {/* شريط البحث والتصفية */}
-      <div className="bg-[#121212] border border-white/10 p-4 rounded-sm flex items-center justify-between">
-        <input
-          type="text"
-          placeholder={isRtl ? 'بحث عن منتج...' : 'Search products...'}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-black/50 border border-white/15 text-white text-xs px-3 py-2 rounded-xs outline-none focus:border-[#D4AF37] w-full sm:w-72"
-        />
-        <span className="text-xs text-gray-400">
+      {/* شريط البحث وتفلترت المنتجات حسب التصنيف */}
+      <div className="bg-[#121212] border border-white/10 p-4 rounded-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          {/* حقل البحث */}
+          <input
+            type="text"
+            placeholder={isRtl ? 'بحث عن منتج...' : 'Search products...'}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-black/50 border border-white/15 text-white text-xs px-3 py-2 rounded-xs outline-none focus:border-[#D4AF37] w-full sm:w-64"
+          />
+
+          {/* فلتر التصنيفات */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="bg-black/50 border border-white/15 text-white text-xs px-3 py-2 rounded-xs outline-none focus:border-[#D4AF37] w-full sm:w-48 cursor-pointer"
+          >
+            <option value="all">{isRtl ? 'جميع التصنيفات' : 'All Categories'}</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id} className="bg-[#121212] text-white">
+                {isRtl ? (cat.titleAr || cat.title || cat.name || cat.id) : (cat.titleEn || cat.title || cat.name || cat.id)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <span className="text-xs text-gray-400 self-end sm:self-center">
           {isRtl ? `النتائج: ${filteredProducts.length}` : `Results: ${filteredProducts.length}`}
         </span>
       </div>
@@ -285,7 +306,7 @@ export default function ProductsView({
               ) : (
                 <tr>
                   <td colSpan="5" className="text-center p-8 text-gray-400">
-                    {isRtl ? 'لا توجد منتجات مطابقة للبحث' : 'No products found'}
+                    {isRtl ? 'لا توجد منتجات مطابقة للبحث أو التصنيف' : 'No products found'}
                   </td>
                 </tr>
               )}
