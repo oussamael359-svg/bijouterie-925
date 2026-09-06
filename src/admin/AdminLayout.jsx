@@ -70,6 +70,8 @@ export default function AdminLayout({ products, setProducts, categories, setCate
           <OrdersView 
             orders={orders} 
             setOrders={setOrders} 
+            products={products}
+            setProducts={setProducts}
             currentLang={currentLang} 
           />
         );
