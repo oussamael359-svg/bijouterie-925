@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminLogin from './AdminLogin';
+import DashboardView from './views/DashboardView';
 import ProductsView from './views/ProductsView';
 import CategoriesView from './views/CategoriesView';
 import TrashView from './views/TrashView';
 import OrdersView from './views/OrdersView';
 
-export default function AdminLayout({ products, setProducts, categories, setCategories, orders, setOrders, onBackToHome, currentLang, setCurrentLang }) {
+export default function AdminLayout({ 
+  products, 
+  setProducts, 
+  categories, 
+  setCategories, 
+  orders, 
+  setOrders, 
+  deletedOrders, 
+  setDeletedOrders, 
+  onBackToHome, 
+  currentLang, 
+  setCurrentLang 
+}) {
   const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -33,17 +46,6 @@ export default function AdminLayout({ products, setProducts, categories, setCate
     try { localStorage.setItem('store_deleted_categories', JSON.stringify(deletedCategories)); } catch (e) {}
   }, [deletedCategories]);
 
-  const [deletedOrders, setDeletedOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem('store_deleted_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
-
-  useEffect(() => {
-    try { localStorage.setItem('store_deleted_orders', JSON.stringify(deletedOrders)); } catch (e) {}
-  }, [deletedOrders]);
-
   const isRtl = currentLang === 'ar';
 
   const handleLogout = () => {
@@ -60,36 +62,11 @@ export default function AdminLayout({ products, setProducts, categories, setCate
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="space-y-6">
-            <h1 className="text-2xl font-serif font-bold text-[#F3E5AB]">
-              {isRtl ? 'نظرة عامة (الداشبورد)' : 'Dashboard Overview'}
-            </h1>
-            <p className="text-xs text-gray-400">
-              {isRtl ? 'مرحباً بك في لوحة تحكم Sharp Edge Studio. هنا ملخص سريع لحالة متجرك.' : 'Welcome to Sharp Edge Studio admin panel.'}
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="bg-[#121212] border border-white/10 p-5 rounded-sm">
-                <p className="text-xs text-gray-400">{isRtl ? 'إجمالي المنتجات' : 'Total Products'}</p>
-                <p className="text-3xl font-bold text-white mt-2">{products.length}</p>
-              </div>
-              <div className="bg-[#121212] border border-emerald-500/20 p-5 rounded-sm">
-                <p className="text-xs text-gray-400">{isRtl ? 'المنتجات المتوفرة' : 'In Stock'}</p>
-                <p className="text-3xl font-bold text-emerald-400 mt-2">
-                  {products.filter(p => (p.stock ?? 1) > 0).length}
-                </p>
-              </div>
-              <div className="bg-[#121212] border border-red-500/20 p-5 rounded-sm">
-                <p className="text-xs text-gray-400">{isRtl ? 'نفذت كميتها' : 'Out of Stock'}</p>
-                <p className="text-3xl font-bold text-red-400 mt-2">
-                  {products.filter(p => (p.stock ?? 1) <= 0).length}
-                </p>
-              </div>
-              <div className="bg-[#121212] border border-[#D4AF37]/30 p-5 rounded-sm">
-                <p className="text-xs text-gray-400">{isRtl ? 'إجمالي الطلبات' : 'Total Orders'}</p>
-                <p className="text-3xl font-bold text-[#D4AF37] mt-2">{orders?.length || 0}</p>
-              </div>
-            </div>
-          </div>
+          <DashboardView 
+            products={products}
+            orders={orders}
+            currentLang={currentLang}
+          />
         );
 
       case 'orders':

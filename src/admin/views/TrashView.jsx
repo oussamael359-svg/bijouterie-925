@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export default function TrashView({ 
   deletedProducts = [], 
   setDeletedProducts, 
-  products, 
+  products = [], 
   setProducts, 
   categories = [], 
   setCategories,
@@ -19,37 +19,53 @@ export default function TrashView({
   const [activeTab, setActiveTab] = useState('products');
 
   const handleRestoreProduct = (product) => {
-    setDeletedProducts(deletedProducts.filter(p => p.id !== product.id));
-    setProducts([product, ...products]);
+    setDeletedProducts(prev => prev.filter(p => p.id !== product.id));
+    if (setProducts) {
+      setProducts(prev => [product, ...prev]);
+    }
   };
 
   const handlePermanentDeleteProduct = (id) => {
-    setDeletedProducts(deletedProducts.filter(p => p.id !== id));
+    if (window.confirm(isRtl ? 'هل أنت متأكد من الحذف النهائي لهذا المنتج؟' : 'Are you sure you want to permanently delete this product?')) {
+      setDeletedProducts(prev => prev.filter(p => p.id !== id));
+    }
   };
 
   const handleRestoreCategory = (cat) => {
-    setDeletedCategories(deletedCategories.filter(c => c.id !== cat.id));
+    setDeletedCategories(prev => prev.filter(c => c.id !== cat.id));
     if (setCategories) {
-      setCategories([cat, ...categories]);
+      setCategories(prev => [cat, ...prev]);
     }
   };
 
   const handlePermanentDeleteCategory = (id) => {
-    setDeletedCategories(deletedCategories.filter(c => c.id !== id));
+    if (window.confirm(isRtl ? 'هل أنت متأكد من الحذف النهائي لهذا التصنيف؟' : 'Are you sure you want to permanently delete this category?')) {
+      setDeletedCategories(prev => prev.filter(c => c.id !== id));
+    }
   };
 
   const handleRestoreOrder = (order) => {
-    setDeletedOrders(deletedOrders.filter(o => o.id !== order.id));
+    setDeletedOrders(prev => prev.filter(o => o.id !== order.id));
     if (setOrders) {
-      setOrders([order, ...orders]);
+      setOrders(prev => [order, ...prev]);
     }
   };
 
   const handlePermanentDeleteOrder = (id) => {
-    setDeletedOrders(deletedOrders.filter(o => o.id !== id));
+    if (window.confirm(isRtl ? 'هل أنت متأكد من الحذف النهائي لهذا الطلب؟' : 'Are you sure you want to permanently delete this order?')) {
+      setDeletedOrders(prev => prev.filter(o => o.id !== id));
+    }
   };
 
   const handleEmptyTrash = () => {
+    const confirmMsg = activeTab === 'products' 
+      ? (isRtl ? 'هل أنت متأكد من إفراغ سلة المنتجات نهائياً؟' : 'Are you sure you want to empty products trash?')
+      : activeTab === 'categories'
+      ? (isRtl ? 'هل أنت متأكد من إفراغ سلة التصنيفات نهائياً؟' : 'Are you sure you want to empty categories trash?')
+      : (isRtl ? 'هل أنت متأكد من إفراغ سلة الطلبات نهائياً؟' : 'Are you sure you want to empty orders trash?');
+
+    if (!window.confirm(confirmMsg)) return;
+
     if (activeTab === 'products') {
       setDeletedProducts([]);
     } else if (activeTab === 'categories') {

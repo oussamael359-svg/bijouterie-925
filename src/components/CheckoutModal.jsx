@@ -12,6 +12,7 @@ export default function CheckoutModal({
   // ⚙️ معلومات حسابك البنكي (يمكنك تعديلها بكل سهولة هنا)
   const bankInfo = {
     bankName: 'CIH Bank',
+    accountHolder: 'Sharp Edge Studio',
     rib: '230 780 0000000000000000 45', // رقم الـ RIB الخاص بك
     whatsappPhone: '212600000000' // رقم الواتساب لتلقي الطلبات
   };
@@ -52,8 +53,9 @@ export default function CheckoutModal({
       status: 'pending'
     };
 
+    // 🛡️ التعديل الصحيح والآمن هنا: استخدام دالة التحديث prevOrders
     if (setOrders) {
-      setOrders([newOrder, ...(orders || [])]);
+      setOrders(prevOrders => [newOrder, ...(prevOrders || [])]);
     }
 
     const itemsText = cartItems.map(i => `- ${i.name} (${i.quantity}x) : ${i.price * i.quantity} MAD`).join('%0A');
