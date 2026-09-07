@@ -8,7 +8,11 @@ export default function TrashView({
   categories = [], 
   setCategories,
   deletedCategories = [], 
-  setDeletedCategories, 
+  setDeletedCategories,
+  orders = [],
+  setOrders,
+  deletedOrders = [],
+  setDeletedOrders,
   currentLang 
 }) {
   const isRtl = currentLang === 'ar';
@@ -34,11 +38,24 @@ export default function TrashView({
     setDeletedCategories(deletedCategories.filter(c => c.id !== id));
   };
 
+  const handleRestoreOrder = (order) => {
+    setDeletedOrders(deletedOrders.filter(o => o.id !== order.id));
+    if (setOrders) {
+      setOrders([order, ...orders]);
+    }
+  };
+
+  const handlePermanentDeleteOrder = (id) => {
+    setDeletedOrders(deletedOrders.filter(o => o.id !== id));
+  };
+
   const handleEmptyTrash = () => {
     if (activeTab === 'products') {
       setDeletedProducts([]);
-    } else {
+    } else if (activeTab === 'categories') {
       setDeletedCategories([]);
+    } else if (activeTab === 'orders') {
+      setDeletedOrders([]);
     }
   };
 
@@ -75,7 +92,9 @@ export default function TrashView({
           </p>
         </div>
         
-        {((activeTab === 'products' && deletedProducts.length > 0) || (activeTab === 'categories' && deletedCategories.length > 0)) && (
+        {((activeTab === 'products' && deletedProducts.length > 0) || 
+          (activeTab === 'categories' && deletedCategories.length > 0) || 
+          (activeTab === 'orders' && deletedOrders.length > 0)) && (
           <button
             onClick={handleEmptyTrash}
             className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold px-4 py-2.5 rounded-sm transition flex items-center gap-2 cursor-pointer"
@@ -83,16 +102,18 @@ export default function TrashView({
             <i className="fa-solid fa-trash-arrow-up text-xs"></i>
             {activeTab === 'products' 
               ? (isRtl ? 'إفراغ سلة المنتجات' : 'Empty Products Trash') 
-              : (isRtl ? 'إفراغ سلة التصنيفات' : 'Empty Categories Trash')}
+              : activeTab === 'categories'
+              ? (isRtl ? 'إفراغ سلة التصنيفات' : 'Empty Categories Trash')
+              : (isRtl ? 'إفراغ سلة الطلبات' : 'Empty Orders Trash')}
           </button>
         )}
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex border-b border-white/10 gap-6 text-xs font-bold">
+      <div className="flex border-b border-white/10 gap-6 text-xs font-bold overflow-x-auto">
         <button
           onClick={() => setActiveTab('products')}
-          className={`pb-3 border-b-2 transition cursor-pointer flex items-center gap-2 ${
+          className={`pb-3 border-b-2 transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'products' 
               ? 'border-[#D4AF37] text-[#F3E5AB]' 
               : 'border-transparent text-gray-400 hover:text-white'
@@ -107,7 +128,7 @@ export default function TrashView({
 
         <button
           onClick={() => setActiveTab('categories')}
-          className={`pb-3 border-b-2 transition cursor-pointer flex items-center gap-2 ${
+          className={`pb-3 border-b-2 transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'categories' 
               ? 'border-[#D4AF37] text-[#F3E5AB]' 
               : 'border-transparent text-gray-400 hover:text-white'
@@ -117,6 +138,21 @@ export default function TrashView({
           <span>{isRtl ? 'التصنيفات المحذوفة' : 'Deleted Categories'}</span>
           <span className={`px-2 py-0.5 rounded-xs text-[10px] ${activeTab === 'categories' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/5 text-gray-400'}`}>
             {deletedCategories.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('orders')}
+          className={`pb-3 border-b-2 transition cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'orders' 
+              ? 'border-[#D4AF37] text-[#F3E5AB]' 
+              : 'border-transparent text-gray-400 hover:text-white'
+          }`}
+        >
+          <i className="fa-solid fa-bag-shopping text-xs"></i>
+          <span>{isRtl ? 'الطلبات المحذوفة' : 'Deleted Orders'}</span>
+          <span className={`px-2 py-0.5 rounded-xs text-[10px] ${activeTab === 'orders' ? 'bg-[#D4AF37]/20 text-[#D4AF37]' : 'bg-white/5 text-gray-400'}`}>
+            {deletedOrders.length}
           </span>
         </button>
       </div>
@@ -263,6 +299,65 @@ export default function TrashView({
                       <div className="flex flex-col items-center justify-center space-y-2">
                         <i className="fa-solid fa-folder-open text-3xl text-gray-600 mb-2"></i>
                         <span>{isRtl ? 'سلة التصنيفات فارغة' : 'Categories trash is empty'}</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Orders Tab Content */}
+      {activeTab === 'orders' && (
+        <div className="bg-[#121212] border border-white/10 rounded-sm overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-right border-collapse">
+              <thead>
+                <tr className="border-b border-white/10 bg-white/5 text-[11px] text-[#D4AF37] uppercase tracking-wider">
+                  <th className="p-3.5">{isRtl ? 'رقم الطلب' : 'Order ID'}</th>
+                  <th className="p-3.5">{isRtl ? 'العميل' : 'Customer'}</th>
+                  <th className="p-3.5">{isRtl ? 'المجموع' : 'Total'}</th>
+                  <th className="p-3.5">{isRtl ? 'التاريخ' : 'Date'}</th>
+                  <th className="p-3.5 text-center">{isRtl ? 'الإجراءات' : 'Actions'}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-xs">
+                {deletedOrders.length > 0 ? (
+                  deletedOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-white/5 transition opacity-80 hover:opacity-100">
+                      <td className="p-3.5 font-mono text-[#D4AF37] font-bold">{order.id}</td>
+                      <td className="p-3.5">
+                        <span className="font-bold text-white block">{order.customer}</span>
+                        <span className="text-[10px] text-gray-400 font-mono" dir="ltr">{order.phone}</span>
+                      </td>
+                      <td className="p-3.5 font-mono text-white font-bold">{order.total} د.م.</td>
+                      <td className="p-3.5 text-gray-400">{order.date}</td>
+                      <td className="p-3.5 text-center space-x-2">
+                        <button
+                          onClick={() => handleRestoreOrder(order)}
+                          className="text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 p-1.5 rounded-xs transition cursor-pointer"
+                          title={isRtl ? 'استعادة الطلب' : 'Restore Order'}
+                        >
+                          <i className="fa-solid fa-rotate-left text-xs"></i>
+                        </button>
+                        <button
+                          onClick={() => handlePermanentDeleteOrder(order.id)}
+                          className="text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 p-1.5 rounded-xs transition cursor-pointer"
+                          title={isRtl ? 'حذف نهائي' : 'Delete Permanently'}
+                        >
+                          <i className="fa-solid fa-trash text-xs"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="text-center p-12 text-gray-400">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <i className="fa-solid fa-bag-shopping text-3xl text-gray-600 mb-2"></i>
+                        <span>{isRtl ? 'سلة الطلبات فارغة' : 'Orders trash is empty'}</span>
                       </div>
                     </td>
                   </tr>

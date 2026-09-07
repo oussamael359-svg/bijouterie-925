@@ -13,7 +13,6 @@ import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 import AdminLayout from './admin/AdminLayout';
 
-// 📐 مكون التخطيط العام للمتجر
 function StoreLayout({ 
   cartCount, onOpenCart, lang, toggleLanguage, t, 
   cart, removeFromCart, updateQuantity, totalCartPrice, 
@@ -59,7 +58,6 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
   
-  // 🏷️ المنتجات مع الحفظ الدائم في localStorage
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('store_products');
@@ -75,7 +73,6 @@ export default function App() {
     } catch (e) {}
   }, [products]);
   
-  // 📦 حالة الطلبات مع الحفظ الدائم في localStorage
   const [orders, setOrders] = useState(() => {
     try {
       const saved = localStorage.getItem('store_orders');
@@ -91,7 +88,21 @@ export default function App() {
     } catch (e) {}
   }, [orders]);
 
-  // 🏷️ حالة التصنيفات مع الحفظ الدائم في localStorage
+  const [deletedOrders, setDeletedOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_deleted_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('store_deleted_orders', JSON.stringify(deletedOrders));
+    } catch (e) {}
+  }, [deletedOrders]);
+
   const [categories, setCategories] = useState(() => {
     try {
       const saved = localStorage.getItem('store_categories');
@@ -186,7 +197,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔐 مسار لوحة التحكم المستقل */}
         <Route 
           path="/admin/*" 
           element={
@@ -197,13 +207,14 @@ export default function App() {
               setCategories={setCategories}
               orders={orders}
               setOrders={setOrders}
+              deletedOrders={deletedOrders}
+              setDeletedOrders={setDeletedOrders}
               currentLang={lang} 
               setCurrentLang={setLang}
             />
           } 
         />
 
-        {/* 🛍️ مسارات المتجر */}
         <Route element={
           <StoreLayout 
             cartCount={totalCartCount}

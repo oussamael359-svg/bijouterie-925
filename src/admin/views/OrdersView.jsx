@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export default function AdminOrders({ orders, setOrders, products, setProducts, currentLang }) {
+export default function AdminOrders({ orders, setOrders, products, setProducts, deletedOrders, setDeletedOrders, currentLang }) {
   const isRtl = currentLang === 'ar';
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'completed'
@@ -40,7 +40,16 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
   };
 
   const deleteOrder = (orderId) => {
-    if (window.confirm(isRtl ? 'هل أنت متأكد من حذف هذا الطلب؟' : 'Are you sure you want to delete this order?')) {
+    if (window.confirm(isRtl ? 'هل أنت متأكد من نقل هذا الطلب إلى سلة المهملات؟' : 'Are you sure you want to move this order to trash?')) {
+      // 1. البحث عن الطلب المراد حذفه
+      const orderToDelete = orders.find(order => order.id === orderId);
+      
+      if (orderToDelete && setDeletedOrders) {
+        // 2. إضافته إلى سلة المهملات
+        setDeletedOrders(prev => [orderToDelete, ...prev]);
+      }
+
+      // 3. إزالته من القائمة النشطة
       setOrders(prev => prev.filter(order => order.id !== orderId));
     }
   };
@@ -153,7 +162,7 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                   <button 
                     onClick={() => deleteOrder(order.id)}
                     className="text-red-400 hover:text-red-300 text-xs cursor-pointer p-1.5 bg-red-500/10 border border-red-500/20 rounded-sm transition"
-                    title={isRtl ? 'حذف الطلب' : 'Delete order'}
+                    title={isRtl ? 'نقل إلى سلة المهملات' : 'Move to trash'}
                   >
                     <i className="fa-solid fa-trash"></i>
                   </button>

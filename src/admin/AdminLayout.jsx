@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminSidebar from './AdminSidebar';
 import AdminLogin from './AdminLogin';
 import ProductsView from './views/ProductsView';
@@ -7,14 +7,42 @@ import TrashView from './views/TrashView';
 import OrdersView from './views/OrdersView';
 
 export default function AdminLayout({ products, setProducts, categories, setCategories, orders, setOrders, onBackToHome, currentLang, setCurrentLang }) {
-  // التحقق من حالة تسجيل الدخول عبر sessionStorage
   const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // حالة المنتجات والتصنيفات المحذوفة (سلة المهملات)
-  const [deletedProducts, setDeletedProducts] = useState([]);
-  const [deletedCategories, setDeletedCategories] = useState([]);
+  const [deletedProducts, setDeletedProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_deleted_products');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('store_deleted_products', JSON.stringify(deletedProducts)); } catch (e) {}
+  }, [deletedProducts]);
+
+  const [deletedCategories, setDeletedCategories] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_deleted_categories');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('store_deleted_categories', JSON.stringify(deletedCategories)); } catch (e) {}
+  }, [deletedCategories]);
+
+  const [deletedOrders, setDeletedOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_deleted_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('store_deleted_orders', JSON.stringify(deletedOrders)); } catch (e) {}
+  }, [deletedOrders]);
 
   const isRtl = currentLang === 'ar';
 
@@ -24,7 +52,6 @@ export default function AdminLayout({ products, setProducts, categories, setCate
     if (onBackToHome) onBackToHome();
   };
 
-  // إذا لم يتم تسجيل الدخول، يتم عرض صفحة تسجيل الدخول فقط
   if (!isLoggedIn) {
     return <AdminLogin onLogin={() => setIsLoggedIn(true)} currentLang={currentLang} />;
   }
@@ -72,6 +99,8 @@ export default function AdminLayout({ products, setProducts, categories, setCate
             setOrders={setOrders} 
             products={products}
             setProducts={setProducts}
+            deletedOrders={deletedOrders}
+            setDeletedOrders={setDeletedOrders}
             currentLang={currentLang} 
           />
         );
@@ -123,6 +152,10 @@ export default function AdminLayout({ products, setProducts, categories, setCate
             setCategories={setCategories}
             deletedCategories={deletedCategories}
             setDeletedCategories={setDeletedCategories}
+            deletedOrders={deletedOrders}
+            setDeletedOrders={setDeletedOrders}
+            orders={orders}
+            setOrders={setOrders}
             currentLang={currentLang}
           />
         );
@@ -134,7 +167,6 @@ export default function AdminLayout({ products, setProducts, categories, setCate
 
   return (
     <div className="bg-[#0a0a0a] min-h-screen text-white relative flex">
-      {/* السايد بار في اليسار دائماً مع تمرير المحذوفات */}
       <AdminSidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -146,10 +178,10 @@ export default function AdminLayout({ products, setProducts, categories, setCate
         setIsOpen={setIsSidebarOpen}
         deletedProducts={deletedProducts}
         deletedCategories={deletedCategories}
+        deletedOrders={deletedOrders}
         orders={orders}
       />
 
-      {/* منطقة المحتوى تتأقلم مع مساحة السايد بار وتدعم اتجاه اللغة */}
       <main 
         className={`flex-1 p-8 overflow-y-auto max-h-screen transition-all duration-300 ${
           isSidebarOpen ? 'md:ml-64' : 'ml-0'
