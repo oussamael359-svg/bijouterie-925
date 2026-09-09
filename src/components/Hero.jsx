@@ -26,19 +26,13 @@ export default function Hero({ currentLang }) {
           : 'Discover our hand-picked selection of premium 925 sterling silver rings, necklaces, and bracelets crafted for absolute luxury.'}
       </p>
 
-      {/* أزرار الإجراءات (CTA) */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto mb-16">
+      {/* زر الإجراء الأساسي (CTA) */}
+      <div className="flex flex-col items-center w-full sm:w-auto mb-16">
         <Link 
           to="/shop" 
-          className="w-full sm:w-auto bg-[#D4AF37] text-black hover:bg-[#F3E5AB] px-9 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 shadow-xl shadow-[#D4AF37]/20 text-center"
+          className="w-full sm:w-auto bg-[#D4AF37] text-black hover:bg-[#F3E5AB] px-10 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 shadow-xl shadow-[#D4AF37]/20 text-center"
         >
           {currentLang === 'ar' ? 'تصفح المجموعات' : 'Explore Collections'}
-        </Link>
-        <Link 
-          to="/shop" 
-          className="w-full sm:w-auto border border-[#D4AF37]/60 text-[#F3E5AB] hover:bg-[#D4AF37]/10 px-9 py-4 rounded-sm font-bold text-xs tracking-widest uppercase transition duration-300 backdrop-blur-xs text-center"
-        >
-          {currentLang === 'ar' ? 'عن الماركة' : 'Our Legacy'}
         </Link>
       </div>
 
