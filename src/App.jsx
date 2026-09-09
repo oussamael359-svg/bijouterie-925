@@ -9,6 +9,7 @@ import Categories from './components/Categories';
 import ProductGrid from './components/ProductGrid';
 import ShopPage from './components/ShopPage';
 import ProductDetailsPage from './components/ProductDetailsPage';
+import Contact from './components/Contact';
 import CartDrawer from './components/CartDrawer';
 import Footer from './components/Footer';
 import AdminLayout from './admin/AdminLayout';
@@ -273,6 +274,13 @@ export default function App() {
                 onAddToCart={addToCart}
                 currentLang={lang}
               />
+            } 
+          />
+
+          <Route 
+            path="/contact" 
+            element={
+              <Contact currentLang={lang} />
             } 
           />
         </Route>

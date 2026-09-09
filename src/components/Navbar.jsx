@@ -129,25 +129,15 @@ export default function Navbar({
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
               </Link>
 
-              {/* من نحن */}
-              <a 
-                href="#about" 
-                onClick={() => setIsSidebarOpen(false)}
-                className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
-              >
-                <span>{t?.nav?.about || (currentLang === 'ar' ? 'من نحن' : 'About Us')}</span>
-                <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
-              </a>
-
-              {/* اتصل بنا */}
-              <a 
-                href="#contact" 
+              {/* اتصل بنا (تم تحويله إلى Link موجه لصفحة /contact) */}
+              <Link 
+                to="/contact" 
                 onClick={() => setIsSidebarOpen(false)}
                 className="hover:text-[#D4AF37] hover:translate-x-2 transition duration-300 flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer"
               >
                 <span>{t?.nav?.contact || (currentLang === 'ar' ? 'اتصل بنا' : 'Contact Us')}</span>
                 <i className="fa-solid fa-angle-right text-xs text-[#D4AF37]"></i>
-              </a>
+              </Link>
             </nav>
 
             <div className="pt-6 border-t border-white/10 flex flex-col gap-4">
