@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,6 +14,9 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 export default function DashboardView({ products = [], orders = [], currentLang = 'ar' }) {
   const isRtl = currentLang === 'ar';
+  
+  // حالة التاريخ المختار (افتراضياً تاريخ اليوم)
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
 
   // تصفية الطلبات في حالة "مكتمل" أو "تم التسليم" حصراً
   const completedOrders = (orders || []).filter(ord => {
@@ -25,11 +28,12 @@ export default function DashboardView({ products = [], orders = [], currentLang 
   const totalRevenue = completedOrders.reduce((sum, ord) => sum + (Number(ord.total || ord.total_price) || 0), 0);
   const avgOrderValue = completedOrders.length > 0 ? (totalRevenue / completedOrders.length).toFixed(2) : 0;
 
-  // تجهيز بيانات آخر 7 أيام بالأرباح الفعلية
+  // تجهيز بيانات آخر 7 أيام بناءً على التاريخ المختار في التقويم
   const salesMap = {};
+  const baseDate = new Date(filterDate);
   for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+    const d = new Date(baseDate);
+    d.setDate(baseDate.getDate() - i);
     const dateString = d.toISOString().split('T')[0];
     const dayName = d.toLocaleDateString(isRtl ? 'ar-SA' : 'en-US', { weekday: 'short' });
     salesMap[dateString] = { label: dayName, total: 0 };
@@ -149,7 +153,7 @@ export default function DashboardView({ products = [], orders = [], currentLang 
         
         {/* اليسار: المبيان البياني المنظم */}
         <div className="lg:col-span-2 bg-[#121212] border border-[#D4AF37]/30 p-6 rounded-lg shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3 gap-2 flex-wrap">
             <div>
               <h2 className="text-base font-bold text-[#F3E5AB]">
                 {isRtl ? 'أرباح الأسبوع (للطلبات المكتملة فقط)' : 'Weekly Profit Trend'}
@@ -158,9 +162,15 @@ export default function DashboardView({ products = [], orders = [], currentLang 
                 {isRtl ? 'المحور الأيسر يعرض الأرباح • المحور السفلي يعرض الأيام' : 'Y-axis shows profit, X-axis shows weekdays'}
               </p>
             </div>
-            <span className="text-xs bg-[#D4AF37]/10 text-[#D4AF37] px-2.5 py-1 rounded border border-[#D4AF37]/30">
-              Chart.js Active
-            </span>
+            
+            {/* فلتر التقويم (Date Picker) مع تفعيل الوضع الداكن للإيقونات */}
+            <input 
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              style={{ colorScheme: 'dark' }}
+              className="bg-[#1a1a1a] border border-[#D4AF37]/40 text-[#F3E5AB] text-xs px-3 py-1.5 rounded outline-none cursor-pointer focus:border-[#D4AF37] shadow-md font-mono"
+            />
           </div>
 
           <div className="h-72 w-full pt-2">
