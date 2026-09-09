@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import emailjs from '@emailjs/browser';
 
 export default function Contact({ currentLang }) {
   const [formData, setFormData] = useState({
@@ -15,31 +14,32 @@ export default function Contact({ currentLang }) {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setStatus('');
 
-    // ضع بيانات EmailJS الخاصة بك هنا لاحقاً
-    const serviceID = 'service_pvy7vcc';
-    const templateID = 'template_xvk7t3b';
-    const publicKey = 'rIIG9afw-AambnNHL';
+    try {
+      const response = await fetch('https://formspree.io/f/mgaeryak', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
 
-    const templateParams = {
-      from_name: formData.name,
-      from_account: formData.account,
-      subject: formData.subject,
-      message: formData.message,
-    };
-
-    emailjs.send(serviceID, templateID, templateParams, publicKey)
-      .then((response) => {
+      if (response.ok) {
         setStatus('success');
         setFormData({ name: '', account: '', subject: '', message: '' });
-        setLoading(false);
-      }, (err) => {
+      } else {
         setStatus('error');
-        setLoading(false);
-      });
+      }
+    } catch (error) {
+      setStatus('error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -67,7 +67,7 @@ export default function Contact({ currentLang }) {
 
           {status === 'error' && (
             <div className="bg-red-500/10 border border-red-500 text-red-400 p-4 text-center text-xs tracking-wider rounded">
-              {currentLang === 'ar' ? 'حدث خطأ أثناء الإرسال، يجدر التحقق من البيانات.' : 'Error sending message, please try again.'}
+              {currentLang === 'ar' ? 'حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.' : 'Error sending message, please try again.'}
             </div>
           )}
 
