@@ -11,7 +11,6 @@ export default function CheckoutModal({
 }) {
   const bankInfo = {
     bankName: 'CIH Bank',
-    accountHolder: 'Sharp Edge Studio',
     rib: '230 780 0000000000000000 45',
     whatsappPhone: '212600000000'
   };
@@ -27,7 +26,8 @@ export default function CheckoutModal({
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState('');
-  const [finalTotal, setFinalTotal] = useState(0); // 🔹 حفظ المبلغ الإجمالي قبل تفريغ السلة
+  const [finalTotal, setFinalTotal] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
@@ -38,11 +38,17 @@ export default function CheckoutModal({
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleCopyRib = () => {
+    navigator.clipboard.writeText(bankInfo.rib);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const calculatedTotal = currentTotalPrice;
-    setFinalTotal(calculatedTotal); // 🔹 تثبيت المجموع الحالي قبل تصفير السلة
+    setFinalTotal(calculatedTotal);
 
     const newOrder = {
       id: 'ORD-' + Date.now().toString().slice(-6),
@@ -76,6 +82,7 @@ export default function CheckoutModal({
   const handleCloseAll = () => {
     setIsSubmitted(false);
     setFormData({ fullName: '', email: '', phone: '', address: '', city: '', bankReference: '' });
+    setCopied(false);
     onClose();
   };
 
@@ -140,7 +147,7 @@ export default function CheckoutModal({
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full bg-black/40 border border-white/20 rounded-sm p-2.5 text-sm text-white focus:border-[#D4AF37] outline-none"
-                    placeholder={isRtl ? 'name@example.com' : 'name@example.com'}
+                    placeholder="name@example.com"
                   />
                 </div>
               </div>
@@ -200,50 +207,55 @@ export default function CheckoutModal({
             </form>
           </div>
         ) : (
-          <div className="text-center py-4 space-y-4">
+          <div className="text-center py-2 space-y-4">
             <i className="fa-solid fa-circle-check text-emerald-400 text-4xl"></i>
             <h3 className="text-xl font-serif font-bold text-[#F3E5AB]">
               {isRtl ? 'تم تسجيل طلبك بنجاح!' : 'Order Placed Successfully!'}
             </h3>
             
-            <div className="bg-white/5 p-4 rounded-sm border border-[#D4AF37]/30 text-xs text-left space-y-2 mt-3" dir="ltr">
-              <p className="text-[#D4AF37] font-bold text-center mb-2" dir={isRtl ? 'rtl' : 'ltr'}>
-                {isRtl ? 'يرجى تحويل المبلغ عبر المعلومات التالية:' : 'Please transfer the amount using details below:'}
-              </p>
-              <div className="flex justify-between text-gray-300">
+            {/* رسالة توضيحية لخطوات الدفع */}
+            <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3.5 rounded-sm text-xs text-gray-200 leading-relaxed text-center">
+              {isRtl 
+                ? 'قم بنسخ رقم الحساب (RIB)، وحول المبلغ المطلوب لكي تتوصل بمنتجاتك، ثم تواصل معنا عبر الواتساب لإرسال وصل التحويل.' 
+                : 'Copy the RIB number, transfer the required amount to receive your products, and contact us via WhatsApp.'}
+            </div>
+
+            <div className="bg-white/5 p-4 rounded-sm border border-[#D4AF37]/30 text-xs text-left space-y-3" dir="ltr">
+              <div className="flex justify-between text-gray-300 items-center">
                 <span className="text-gray-400">Bank:</span>
                 <span className="font-semibold text-white">{bankInfo.bankName}</span>
               </div>
-              <div className="flex justify-between text-gray-300">
-                <span className="text-gray-400">Holder:</span>
-                <span className="font-semibold text-[#F3E5AB]">{bankInfo.accountHolder}</span>
+
+              <div className="space-y-1.5">
+                <span className="text-gray-400 text-[11px] block">RIB:</span>
+                <div className="flex justify-between items-center bg-black/60 p-2.5 rounded border border-white/10 gap-2">
+                  <span className="font-mono text-[#D4AF37] font-bold select-all tracking-wider text-xs break-all">
+                    {bankInfo.rib}
+                  </span>
+                  <button 
+                    onClick={handleCopyRib}
+                    className="bg-[#D4AF37] hover:bg-[#F3E5AB] text-black px-3 py-2 rounded flex items-center gap-1.5 cursor-pointer text-xs font-bold shrink-0 transition-colors shadow-md"
+                  >
+                    <i className={`fa-solid ${copied ? 'fa-check text-emerald-900' : 'fa-copy'} text-sm`}></i>
+                    <span>{copied ? (isRtl ? 'تم النسخ!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                  </button>
+                </div>
               </div>
-              <div className="flex justify-between items-center bg-black/60 p-2 rounded border border-white/10">
-                <span className="text-gray-400 font-medium">RIB:</span>
-                <span className="font-mono text-[#D4AF37] font-bold select-all tracking-wider">
-                  {bankInfo.rib}
-                </span>
-              </div>
-              <div className="flex justify-between text-gray-300 pt-1 border-t border-white/10">
+
+              <div className="flex justify-between text-gray-300 pt-2 border-t border-white/10 items-center">
                 <span className="text-gray-400">Total Amount:</span>
-                <span className="font-bold text-[#D4AF37]">{finalTotal} MAD</span>
+                <span className="font-bold text-[#D4AF37] text-sm font-mono">{finalTotal} MAD</span>
               </div>
             </div>
-
-            <p className="text-xs text-gray-300 leading-relaxed">
-              {isRtl 
-                ? 'بعد إجراء التحويل، يرجى النقر على زر الواتساب أدناه لإرسال وصل التحويل وتأكيد شحن طلبك.' 
-                : 'After transferring, please click WhatsApp below to send your receipt and ship your order.'}
-            </p>
             
             <a 
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm text-xs font-bold uppercase tracking-wider transition duration-200 shadow-lg"
+              className="inline-flex items-center justify-center gap-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-sm text-xs font-bold uppercase tracking-wider transition duration-200 shadow-lg cursor-pointer"
             >
               <i className="fa-brands fa-whatsapp text-lg"></i>
-              {isRtl ? 'إرسال وصل التحويل عبر واتساب' : 'Send Receipt via WhatsApp'}
+              {isRtl ? 'تواصل معنا عبر الواتساب لتأكيد الطلب' : 'Contact via WhatsApp to Confirm'}
             </a>
 
             <button 
