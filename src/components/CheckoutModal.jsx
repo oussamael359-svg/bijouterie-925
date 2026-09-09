@@ -45,6 +45,90 @@ export default function CheckoutModal({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownloadPDF = () => {
+    if (!currentOrder) return;
+
+    const printWindow = window.open('', '_blank');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="${currentLang}" dir="${isRtl ? 'rtl' : 'ltr'}">
+      <head>
+        <meta charset="UTF-8">
+        <title>Invoice - ${currentOrder.id}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; color: #333; background: #fff; }
+          .invoice-box { max-width: 800px; margin: auto; padding: 30px; border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); font-size: 14px; line-height: 24px; }
+          .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 2px solid #D4AF37; padding-bottom: 20px; }
+          .logo h2 { margin: 0; color: #D4AF37; font-family: serif; }
+          .details { margin-bottom: 30px; }
+          table { width: 100%; line-height: inherit; text-align: ${isRtl ? 'right' : 'left'}; border-collapse: collapse; }
+          table th { background: #f8f9fa; border-bottom: 1px solid #ddd; padding: 10px; font-weight: bold; }
+          table td { padding: 10px; border-bottom: 1px solid #eee; }
+          .total { margin-top: 20px; text-align: ${isRtl ? 'left' : 'right'}; font-size: 16px; font-weight: bold; color: #333; }
+          .bank-info { margin-top: 30px; background: #fdf8e2; padding: 15px; border: 1px solid #D4AF37; border-radius: 4px; }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-box">
+          <div class="header">
+            <div class="logo">
+              <h2>BIJOUTERIE 925</h2>
+              <p style="margin: 5px 0 0; color: #666; font-size: 12px;">Invoice / فاتورة رسمية</p>
+            </div>
+            <div>
+              <p><strong>Order ID:</strong> ${currentOrder.id}</p>
+              <p><strong>Date:</strong> ${currentOrder.date}</p>
+            </div>
+          </div>
+
+          <div class="details">
+            <h3>Customer Information / معلومات العميل</h3>
+            <p><strong>Name:</strong> ${currentOrder.customer}</p>
+            <p><strong>Email:</strong> ${currentOrder.email}</p>
+            <p><strong>Phone:</strong> ${currentOrder.phone}</p>
+            <p><strong>Address:</strong> ${currentOrder.address}</p>
+          </div>
+
+          <h3>Order Items / المنتجات المطلوبة</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Item / المنتج</th>
+                <th>Quantity / الكمية</th>
+                <th>Price / السعر</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${currentOrder.items.map(item => `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.quantity}</td>
+                  <td>${item.price * item.quantity} MAD</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="total">
+            <p>Total Amount / المجموع الكلي: <span style="color: #D4AF37;">${currentOrder.total} MAD</span></p>
+          </div>
+
+          <div class="bank-info">
+            <p style="margin: 0 0 5px; font-weight: bold;">Payment Info / معلومات التحويل البنكي:</p>
+            <p style="margin: 0;">Bank: ${bankInfo.bankName} | RIB: ${bankInfo.rib}</p>
+            <p style="margin: 5px 0 0; font-size: 12px; color: #666;">Bank Reference: ${currentOrder.bankReference}</p>
+          </div>
+        </div>
+        <script>
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `;
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -255,6 +339,15 @@ export default function CheckoutModal({
                 <span className="font-bold text-[#D4AF37] text-sm font-mono">{finalTotal} MAD</span>
               </div>
             </div>
+
+            {/* زر تحميل الفاتورة بصيغة PDF */}
+            <button 
+              onClick={handleDownloadPDF}
+              className="w-full bg-white/10 hover:bg-white/20 border border-[#D4AF37]/40 text-[#F3E5AB] py-3 rounded-sm text-xs font-bold uppercase tracking-wider transition duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-md"
+            >
+              <i className="fa-solid fa-file-pdf text-sm text-red-400"></i>
+              {isRtl ? 'تحميل الفاتورة PDF (Download PDF)' : 'Download PDF Invoice'}
+            </button>
             
             <a 
               href={whatsappLink}
