@@ -54,11 +54,12 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
     }
   };
 
-  // فلترة الطلبات حسب البحث والحالة
+  // فلترة الطلبات حسب البحث (مع دعم البحث بالبريد الإلكتروني) والحالة
   const filteredOrders = orders?.filter(order => {
     const matchesSearch = 
       (order.id && order.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.customer && order.customer.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.email && order.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.phone && order.phone.includes(searchTerm));
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
@@ -111,7 +112,7 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder={isRtl ? 'بحث برقم الطلب، اسم العميل، أو الهاتف...' : 'Search by order ID, customer name, or phone...'}
+            placeholder={isRtl ? 'بحث برقم الطلب، اسم العميل، البريد، أو الهاتف...' : 'Search by order ID, customer name, email, or phone...'}
             className={`w-full bg-[#0F0F0F] border border-white/10 rounded-sm py-2 text-xs text-white focus:outline-none focus:border-[#D4AF37] transition ${
               isRtl ? 'pr-9 pl-3' : 'pl-9 pr-3'
             }`}
@@ -176,6 +177,7 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                     <i className="fa-solid fa-user-tie text-[#D4AF37]"></i> {isRtl ? 'معلومات العميل' : 'Customer Info'}
                   </p>
                   <p><strong className="text-gray-400">{isRtl ? 'الاسم:' : 'Name:'}</strong> <span className="text-white font-medium">{order.customer}</span></p>
+                  <p><strong className="text-gray-400">{isRtl ? 'البريد الإلكتروني:' : 'Email:'}</strong> <span className="text-white font-mono" dir="ltr">{order.email || (isRtl ? 'غير متوفر' : 'N/A')}</span></p>
                   <p><strong className="text-gray-400">{isRtl ? 'الهاتف:' : 'Phone:'}</strong> <span className="text-white font-mono" dir="ltr">{order.phone}</span></p>
                   <p><strong className="text-gray-400">{isRtl ? 'العنوان:' : 'Address:'}</strong> <span className="text-white">{order.address}</span></p>
                 </div>
