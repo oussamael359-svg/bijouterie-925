@@ -9,16 +9,16 @@ export default function CheckoutModal({
   setOrders, 
   currentLang 
 }) {
-  // ⚙️ معلومات حسابك البنكي (يمكنك تعديلها بكل سهولة هنا)
   const bankInfo = {
     bankName: 'CIH Bank',
     accountHolder: 'Sharp Edge Studio',
-    rib: '230 780 0000000000000000 45', // رقم الـ RIB الخاص بك
-    whatsappPhone: '212600000000' // رقم الواتساب لتلقي الطلبات
+    rib: '230 780 0000000000000000 45',
+    whatsappPhone: '212600000000'
   };
 
   const [formData, setFormData] = useState({
     fullName: '',
+    email: '',
     phone: '',
     address: '',
     city: '',
@@ -27,11 +27,12 @@ export default function CheckoutModal({
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState('');
+  const [finalTotal, setFinalTotal] = useState(0); // 🔹 حفظ المبلغ الإجمالي قبل تفريغ السلة
 
   if (!isOpen) return null;
 
   const isRtl = currentLang === 'ar';
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const currentTotalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,26 +41,29 @@ export default function CheckoutModal({
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const calculatedTotal = currentTotalPrice;
+    setFinalTotal(calculatedTotal); // 🔹 تثبيت المجموع الحالي قبل تصفير السلة
+
     const newOrder = {
       id: 'ORD-' + Date.now().toString().slice(-6),
       date: new Date().toISOString().split('T')[0],
       customer: formData.fullName,
+      email: formData.email,
       phone: formData.phone,
       address: `${formData.address}, ${formData.city}`,
       items: cartItems,
-      total: totalPrice,
+      total: calculatedTotal,
       paymentMethod: 'Bank Transfer',
       bankReference: formData.bankReference || 'غير محدد',
       status: 'pending'
     };
 
-    // 🛡️ التعديل الصحيح والآمن هنا: استخدام دالة التحديث prevOrders
     if (setOrders) {
       setOrders(prevOrders => [newOrder, ...(prevOrders || [])]);
     }
 
     const itemsText = cartItems.map(i => `- ${i.name} (${i.quantity}x) : ${i.price * i.quantity} MAD`).join('%0A');
-    const message = `*طلب جديد عبر التحويل البنكي*%0A%0A*رقم الطلب:* ${newOrder.id}%0A*الاسم:* ${formData.fullName}%0A*الهاتف:* ${formData.phone}%0A*العنوان:* ${formData.address}, ${formData.city}%0A*مرجع التحويل:* ${formData.bankReference || 'لم يتم إدخاله'}%0A%0A*المنتجات:*%0A${itemsText}%0A%0A*المجموع الكلي:* ${totalPrice} MAD`;
+    const message = `*طلب جديد عبر التحويل البنكي*%0A%0A*رقم الطلب:* ${newOrder.id}%0A*الاسم:* ${formData.fullName}%0A*البريد:* ${formData.email}%0A*الهاتف:* ${formData.phone}%0A*العنوان:* ${formData.address}, ${formData.city}%0A*مرجع التحويل:* ${formData.bankReference || 'لم يتم إدخاله'}%0A%0A*المنتجات:*%0A${itemsText}%0A%0A*المجموع الكلي:* ${calculatedTotal} MAD`;
     
     setWhatsappLink(`https://wa.me/${bankInfo.whatsappPhone}?text=${message}`);
 
@@ -71,7 +75,7 @@ export default function CheckoutModal({
 
   const handleCloseAll = () => {
     setIsSubmitted(false);
-    setFormData({ fullName: '', phone: '', address: '', city: '', bankReference: '' });
+    setFormData({ fullName: '', email: '', phone: '', address: '', city: '', bankReference: '' });
     onClose();
   };
 
@@ -96,51 +100,49 @@ export default function CheckoutModal({
                 {isRtl ? 'إتمام الطلب عبر التحويل البنكي' : 'Bank Transfer Checkout'}
               </h2>
               <p className="text-xs text-gray-400 mt-1">
-                {isRtl ? 'قم بتحويل المبلغ إلى حسابنا أدناه ثم أتمم بيانات الشحن' : 'Transfer the amount to our account below and fill details'}
+                {isRtl ? 'أدخل معلوماتك لتأكيد الطلب والحصول على تفاصيل الدفع' : 'Enter your details to confirm order and get payment info'}
               </p>
             </div>
 
-            {/* صندوق معلومات الحساب البنكي */}
-            <div className="bg-white/5 p-4 rounded-sm border border-[#D4AF37]/30 text-xs space-y-2 mb-5">
-              <p className="text-[#D4AF37] font-bold flex items-center gap-1.5 border-b border-white/10 pb-2">
-                <i className="fa-solid fa-circle-info text-sm"></i>
-                {isRtl ? 'معلومات الحساب البنكي للتحويل:' : 'Bank Account Information:'}
+            <div className="bg-white/5 p-3.5 rounded-sm border border-[#D4AF37]/20 text-xs text-gray-300 mb-5 flex items-center gap-3">
+              <i className="fa-solid fa-shield-halved text-[#D4AF37] text-lg shrink-0"></i>
+              <p className="leading-relaxed">
+                {isRtl 
+                  ? 'ستظهر لك معلومات الحساب البنكي (RIB) مباشرة بعد تأكيد الطلب أدناه.' 
+                  : 'Bank account details (RIB) will appear immediately after confirming your order.'}
               </p>
-              <div className="space-y-2 text-gray-300">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">{isRtl ? 'البنك:' : 'Bank:'}</span>
-                  <span className="font-semibold text-white">{bankInfo.bankName}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-[#F3E5AB]">{bankInfo.accountHolder}</span>
-                </div>
-                <div className="flex justify-between items-center bg-black/50 p-2.5 rounded border border-white/10">
-                  <span className="text-gray-400 font-medium">RIB:</span>
-                  <span className="font-mono text-[#D4AF37] font-bold tracking-wider select-all" dir="ltr">
-                    {bankInfo.rib}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center pt-1 border-t border-white/10 mt-1">
-                  <span className="text-gray-400">{isRtl ? 'المبلغ المطلوب:' : 'Amount:'}</span>
-                  <span className="font-bold text-[#D4AF37] text-sm">{totalPrice} MAD</span>
-                </div>
-              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs text-gray-300 mb-1">
-                  {isRtl ? 'الاسم الكامل' : 'Full Name'}
-                </label>
-                <input 
-                  type="text" 
-                  name="fullName"
-                  required
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="w-full bg-black/40 border border-white/20 rounded-sm p-2.5 text-sm text-white focus:border-[#D4AF37] outline-none"
-                  placeholder={isRtl ? 'أدخل اسمك الكامل' : 'Enter your full name'}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-300 mb-1">
+                    {isRtl ? 'الاسم الكامل' : 'Full Name'}
+                  </label>
+                  <input 
+                    type="text" 
+                    name="fullName"
+                    required
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-white/20 rounded-sm p-2.5 text-sm text-white focus:border-[#D4AF37] outline-none"
+                    placeholder={isRtl ? 'أدخل اسمك الكامل' : 'Enter your full name'}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-300 mb-1">
+                    {isRtl ? 'البريد الإلكتروني' : 'Email Address'}
+                  </label>
+                  <input 
+                    type="email" 
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full bg-black/40 border border-white/20 rounded-sm p-2.5 text-sm text-white focus:border-[#D4AF37] outline-none"
+                    placeholder={isRtl ? 'name@example.com' : 'name@example.com'}
+                  />
+                </div>
               </div>
 
               <div>
@@ -189,38 +191,49 @@ export default function CheckoutModal({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs text-gray-300 mb-1">
-                  {isRtl ? 'رقم مرجع التحويل أو اسم الحساب المحول منه (اختياري)' : 'Transfer Reference / Sender Name (Optional)'}
-                </label>
-                <input 
-                  type="text" 
-                  name="bankReference"
-                  value={formData.bankReference}
-                  onChange={handleChange}
-                  className="w-full bg-black/40 border border-white/20 rounded-sm p-2.5 text-sm text-white focus:border-[#D4AF37] outline-none"
-                  placeholder={isRtl ? 'مثال: رقم العملية أو اسمك في الحساب البنكي' : 'e.g., Transaction ID or your bank account name'}
-                />
-              </div>
-
               <button 
                 type="submit"
                 className="w-full bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37] text-black font-bold py-3 uppercase text-xs tracking-widest rounded-sm hover:opacity-90 transition duration-200 cursor-pointer shadow-lg mt-2"
               >
-                {isRtl ? 'تأكيد وإرسال تفاصيل التحويل' : 'Confirm & Send Transfer Details'}
+                {isRtl ? 'تأكيد الطلب وعرض بيانات الحساب' : 'Confirm Order & View Bank Info'}
               </button>
             </form>
           </div>
         ) : (
-          <div className="text-center py-6 space-y-4">
-            <i className="fa-solid fa-circle-check text-emerald-400 text-5xl"></i>
+          <div className="text-center py-4 space-y-4">
+            <i className="fa-solid fa-circle-check text-emerald-400 text-4xl"></i>
             <h3 className="text-xl font-serif font-bold text-[#F3E5AB]">
               {isRtl ? 'تم تسجيل طلبك بنجاح!' : 'Order Placed Successfully!'}
             </h3>
+            
+            <div className="bg-white/5 p-4 rounded-sm border border-[#D4AF37]/30 text-xs text-left space-y-2 mt-3" dir="ltr">
+              <p className="text-[#D4AF37] font-bold text-center mb-2" dir={isRtl ? 'rtl' : 'ltr'}>
+                {isRtl ? 'يرجى تحويل المبلغ عبر المعلومات التالية:' : 'Please transfer the amount using details below:'}
+              </p>
+              <div className="flex justify-between text-gray-300">
+                <span className="text-gray-400">Bank:</span>
+                <span className="font-semibold text-white">{bankInfo.bankName}</span>
+              </div>
+              <div className="flex justify-between text-gray-300">
+                <span className="text-gray-400">Holder:</span>
+                <span className="font-semibold text-[#F3E5AB]">{bankInfo.accountHolder}</span>
+              </div>
+              <div className="flex justify-between items-center bg-black/60 p-2 rounded border border-white/10">
+                <span className="text-gray-400 font-medium">RIB:</span>
+                <span className="font-mono text-[#D4AF37] font-bold select-all tracking-wider">
+                  {bankInfo.rib}
+                </span>
+              </div>
+              <div className="flex justify-between text-gray-300 pt-1 border-t border-white/10">
+                <span className="text-gray-400">Total Amount:</span>
+                <span className="font-bold text-[#D4AF37]">{finalTotal} MAD</span>
+              </div>
+            </div>
+
             <p className="text-xs text-gray-300 leading-relaxed">
               {isRtl 
-                ? 'تم تسجيل طلبك ومعلومات التحويل في لوحة التحكم. يرجى إرسال وصل التحويل عبر الواتساب لتأكيد شحن طلبك.' 
-                : 'Your order has been recorded. Please send your transfer receipt via WhatsApp to ship your order.'}
+                ? 'بعد إجراء التحويل، يرجى النقر على زر الواتساب أدناه لإرسال وصل التحويل وتأكيد شحن طلبك.' 
+                : 'After transferring, please click WhatsApp below to send your receipt and ship your order.'}
             </p>
             
             <a 
