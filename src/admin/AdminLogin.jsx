@@ -8,7 +8,7 @@ export default function AdminLogin({ onLogin, currentLang }) {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'oussamadmin' && password === 'zri9a10911') {
       sessionStorage.setItem('admin_logged_in', 'true');
       onLogin();
     } else {
