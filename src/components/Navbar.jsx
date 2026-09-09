@@ -68,15 +68,6 @@ export default function Navbar({
             </button>
 
             <button
-              onClick={() => alert(currentLang === 'ar' ? "سيتم فتح نافذة تسجيل الدخول قريباً" : "Login modal coming soon")}
-              className="p-2 text-[#F3E5AB] hover:text-[#D4AF37] transition duration-300 cursor-pointer"
-              title={currentLang === 'ar' ? 'حسابي' : 'Account'}
-              aria-label="Account"
-            >
-              <i className="fa-regular fa-user text-2xl"></i>
-            </button>
-
-            <button
               onClick={onOpenCart}
               className="relative p-2 text-[#F3E5AB] hover:text-[#D4AF37] transition duration-300 cursor-pointer"
               title={currentLang === 'ar' ? 'سلة التسوق' : 'Cart'}
