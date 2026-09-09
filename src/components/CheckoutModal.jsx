@@ -28,6 +28,7 @@ export default function CheckoutModal({
   const [whatsappLink, setWhatsappLink] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState(null);
 
   if (!isOpen) return null;
 
@@ -64,6 +65,8 @@ export default function CheckoutModal({
       status: 'pending'
     };
 
+    setCurrentOrder(newOrder);
+
     if (setOrders) {
       setOrders(prevOrders => [newOrder, ...(prevOrders || [])]);
     }
@@ -83,6 +86,7 @@ export default function CheckoutModal({
     setIsSubmitted(false);
     setFormData({ fullName: '', email: '', phone: '', address: '', city: '', bankReference: '' });
     setCopied(false);
+    setCurrentOrder(null);
     onClose();
   };
 
@@ -213,7 +217,6 @@ export default function CheckoutModal({
               {isRtl ? 'تم تسجيل طلبك بنجاح!' : 'Order Placed Successfully!'}
             </h3>
             
-            {/* رسالة توضيحية لخطوات الدفع */}
             <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3.5 rounded-sm text-xs text-gray-200 leading-relaxed text-center">
               {isRtl 
                 ? 'قم بنسخ رقم الحساب (RIB)، وحول المبلغ المطلوب لكي تتوصل بمنتجاتك، ثم تواصل معنا عبر الواتساب لإرسال وصل التحويل.' 
@@ -222,11 +225,16 @@ export default function CheckoutModal({
 
             <div className="bg-white/5 p-4 rounded-sm border border-[#D4AF37]/30 text-xs text-left space-y-3" dir="ltr">
               <div className="flex justify-between text-gray-300 items-center">
+                <span className="text-gray-400">Order ID:</span>
+                <span className="font-mono font-bold text-[#D4AF37]">{currentOrder?.id}</span>
+              </div>
+
+              <div className="flex justify-between text-gray-300 items-center pt-2 border-t border-white/10">
                 <span className="text-gray-400">Bank:</span>
                 <span className="font-semibold text-white">{bankInfo.bankName}</span>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 pt-2 border-t border-white/10">
                 <span className="text-gray-400 text-[11px] block">RIB:</span>
                 <div className="flex justify-between items-center bg-black/60 p-2.5 rounded border border-white/10 gap-2">
                   <span className="font-mono text-[#D4AF37] font-bold select-all tracking-wider text-xs break-all">
