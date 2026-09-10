@@ -114,6 +114,24 @@ export default function DashboardView({ products = [], orders = [], currentLang 
   return (
     <div className="space-y-6 bg-[#0a0a0a] min-h-screen p-4 sm:p-6 text-gray-100 font-sans" dir={isRtl ? 'rtl' : 'ltr'}>
       
+      {/* تنسيقات شريط التمرير المتناسقة مع الهوية الفاخرة */}
+      <style>{`
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #D4AF37;
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #F3E5AB;
+        }
+      `}</style>
+
       {/* رأس الصفحة */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-[#D4AF37]/20 pb-4 gap-2">
         <div>
