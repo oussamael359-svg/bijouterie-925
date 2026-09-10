@@ -118,7 +118,7 @@ export default function DashboardView({ products = [], orders = [], currentLang 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-[#D4AF37]/20 pb-4 gap-2">
         <div>
           <h1 className="text-2xl font-extrabold text-[#F3E5AB] tracking-wide">
-            {isRtl ? 'لوحة التحكم • Sharp Edge Studio' : 'Dashboard Overview • Sharp Edge Studio'}
+            {isRtl ? 'لوحة التحكم • Bijouterie925' : 'Dashboard Overview • Bijouterie925'}
           </h1>
           <p className="text-xs text-gray-400 mt-1">
             {isRtl ? 'متابعة الأرباح والطلبات المكتملة حصراً بتصميم فاخر وعصري' : 'Completed orders financial tracking'}
