@@ -5,42 +5,77 @@ export default function ProductGrid({ products, onAddToCart, currentLang }) {
   const navigate = useNavigate();
   const isRtl = currentLang === 'ar';
 
-  const categorySections = [
-    {
-      id: 'rings',
-      title: isRtl ? 'أحدث خواتم الفضة الرجالية' : 'Latest Men\'s Silver Rings',
-      desc: isRtl 
-        ? 'تصاميم تعكس الهيبة والرجولة، معقودة بعناية من الفضة الإسترلينية 925 والأحجار الكريمة.'
-        : 'Bold, masculine designs handcrafted in 925 sterling silver for timeless distinction.',
-    },
-    {
-      id: 'necklaces',
-      title: isRtl ? 'أحدث السلاسل والقلائد' : 'Latest Men\'s Chains & Necklaces',
-      desc: isRtl 
-        ? 'سلاسل متينة بحباك فخم يمنح مظهرك حضوراً استثنائياً في كل المناسبات.'
-        : 'Durable 925 silver chains with refined weaving designed to elevate your everyday style.',
-    },
-    {
-      id: 'bracelets',
-      title: isRtl ? 'أحدث الأساور الفاخرة' : 'Latest Men\'s Bracelets',
-      desc: isRtl 
-        ? 'لمسة معاصرة تجمع بين صلابة الفضة والجلد الطبيعي الفاخر على معصمك.'
-        : 'A seamless blend of pure silver and premium leather designed for the modern gentleman.',
+  // 1. استخراج جميع التصنيفات الفريدة الموجودة في المنتجات تلقائياً
+  const uniqueCategoryIds = products 
+    ? Array.from(new Set(products.map(p => p.category).filter(Boolean)))
+    : [];
+
+  // 2. توليد أقسام التصنيفات بناءً على الموجود في قاعدة البيانات مع عناوين فاخرة
+  const categorySections = uniqueCategoryIds.map(catId => {
+    const lowerId = catId.toString().toLowerCase();
+
+    if (lowerId.includes('ring') || lowerId.includes('خاتم') || lowerId.includes('خواتم')) {
+      return {
+        id: catId,
+        title: isRtl ? 'أحدث خواتم الفضة الرجالية' : 'Latest Men\'s Silver Rings',
+        desc: isRtl 
+          ? 'تصاميم تعكس الهيبة والرجولة، معقودة بعناية من الفضة الإسترلينية 925 والأحجار الكريمة.'
+          : 'Bold, masculine designs handcrafted in 925 sterling silver for timeless distinction.',
+      };
     }
-  ];
+    if (lowerId.includes('necklace') || lowerId.includes('سلسل') || lowerId.includes('قلاد') || lowerId.includes('قلادة')) {
+      return {
+        id: catId,
+        title: isRtl ? 'أحدث السلاسل والقلائد' : 'Latest Men\'s Chains & Necklaces',
+        desc: isRtl 
+          ? 'سلاسل متينة بحباك فخم يمنح مظهرك حضوراً استثنائياً في كل المناسبات.'
+          : 'Durable 925 silver chains with refined weaving designed to elevate your everyday style.',
+      };
+    }
+    if (lowerId.includes('bracelet') || lowerId.includes('اسوار') || lowerId.includes('أساور') || lowerId.includes('سوار')) {
+      return {
+        id: catId,
+        title: isRtl ? 'أحدث الأساور الفاخرة' : 'Latest Men\'s Bracelets',
+        desc: isRtl 
+          ? 'لمسة معاصرة تجمع بين صلابة الفضة والجلد الطبيعي الفاخر على معصمك.'
+          : 'A seamless blend of pure silver and premium leather designed for the modern gentleman.',
+      };
+    }
+
+    // تصنيف افتراضي لأي قسم جديد تتم إضافته مستقبلاً
+    return {
+      id: catId,
+      title: isRtl ? `أحدث تشكيلة: ${catId}` : `Latest Collection: ${catId}`,
+      desc: isRtl 
+        ? 'تشكيلة فاخرة مصممة بعناية لتلبي ذوقك الرفيع من الفضة الإسترلينية 925.'
+        : 'Exquisite collection crafted with precision and elegance in 925 sterling silver.',
+    };
+  });
 
   return (
     <section id="catalog" className="py-16 px-6 max-w-7xl mx-auto space-y-20">
       {categorySections.map((sec) => {
         const catProducts = products 
           ? products
-              .filter(p => p.category === sec.id)
+              .filter(p => {
+                if (!p.category) return false;
+                // مطابقة مرنة تضمن جلب منتجات التصنيف بغض النظر عن حالة الأحرف
+                return p.category.toString().trim().toLowerCase() === sec.id.toString().trim().toLowerCase();
+              })
               .sort((a, b) => {
+                // 1. المتوفر في المخزون أولاً
                 const aStock = a.stock ?? 1;
                 const bStock = b.stock ?? 1;
                 if (aStock > 0 && bStock <= 0) return -1;
                 if (aStock <= 0 && bStock > 0) return 1; 
-                return 0;
+
+                // 2. الترتيب حسب الأحدث باستخدام التاريخ
+                const dateA = new Date(a.date || a.createdAt || a.created_at || 0).getTime();
+                const dateB = new Date(b.date || b.createdAt || b.created_at || 0).getTime();
+                if (dateA !== dateB) return dateB - dateA;
+
+                // 3. الترتيب التنازلي حسب الـ ID كبديل
+                return (Number(b.id) || 0) - (Number(a.id) || 0);
               })
               .slice(0, 5) 
           : [];
@@ -62,7 +97,8 @@ export default function ProductGrid({ products, onAddToCart, currentLang }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch" dir="ltr">
               {catProducts.map((item, index) => {
                 const isOutOfStock = item.stock !== undefined && item.stock <= 0;
-                const isLatest = index === catProducts.length - 1 && catProducts.length > 1 && !isOutOfStock;
+                // العنصر الأول (index === 0) هو الأحدث ويحصل على الإطار الذهبي وشارة جديد
+                const isLatest = index === 0 && !isOutOfStock;
 
                 return (
                   <div 
