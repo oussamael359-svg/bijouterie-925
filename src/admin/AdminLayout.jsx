@@ -4,6 +4,7 @@ import AdminLogin from './AdminLogin';
 import DashboardView from './views/DashboardView';
 import ProductsView from './views/ProductsView';
 import CategoriesView from './views/CategoriesView';
+import AttributesView from './views/AttributesView';
 import TrashView from './views/TrashView';
 import OrdersView from './views/OrdersView';
 
@@ -45,6 +46,18 @@ export default function AdminLayout({
   useEffect(() => {
     try { localStorage.setItem('store_deleted_categories', JSON.stringify(deletedCategories)); } catch (e) {}
   }, [deletedCategories]);
+
+  // إدارة حالة المقاسات والخصائص مع الحفظ في localStorage
+  const [attributes, setAttributes] = useState(() => {
+    try {
+      const saved = localStorage.getItem('store_attributes');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('store_attributes', JSON.stringify(attributes)); } catch (e) {}
+  }, [attributes]);
 
   const isRtl = currentLang === 'ar';
 
@@ -94,12 +107,23 @@ export default function AdminLayout({
           />
         );
 
+      case 'attributes':
+        return (
+          <AttributesView 
+            attributes={attributes}
+            setAttributes={setAttributes}
+            categories={categories}
+            currentLang={currentLang}
+          />
+        );
+
       case 'products':
         return (
           <ProductsView 
             products={products} 
             setProducts={setProducts} 
             categories={categories} 
+            attributes={attributes}
             currentLang={currentLang}
             deletedProducts={deletedProducts}
             setDeletedProducts={setDeletedProducts}

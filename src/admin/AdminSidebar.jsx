@@ -9,14 +9,15 @@ export default function AdminSidebar({
   onLogout, 
   isOpen, 
   setIsOpen,
-  deletedProducts = [], // قائمة المحذوفات لعرض العدد
-  orders = [] // استلام الطلبات لعرض عددها اختياريًا
+  deletedProducts = [], 
+  orders = [] 
 }) {
   const isRtl = currentLang === 'ar';
 
   const menuItems = [
     { id: 'dashboard', labelAr: 'الداشبورد (الإحصائيات)', labelEn: 'Dashboard', icon: 'fa-gauge-high' },
     { id: 'categories', labelAr: 'التصنيفات', labelEn: 'Categories', icon: 'fa-tags' },
+    { id: 'attributes', labelAr: 'المقاسات والخصائص', labelEn: 'Attributes', icon: 'fa-sliders' }, // إضافة خيار المقاسات والخصائص للقائمة
     { id: 'products', labelAr: 'المنتجات', labelEn: 'Products', icon: 'fa-boxes-stacked' },
     { 
       id: 'orders', 

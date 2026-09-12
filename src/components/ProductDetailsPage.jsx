@@ -16,11 +16,20 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
 
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
 
-  // تحديث المقاس الافتراضي عند تحميل المنتج
+  // تحديث المقاس واللون الافتراضي عند تحميل المنتج
   useEffect(() => {
     if (product?.sizes && product.sizes.length > 0) {
       setSelectedSize(product.sizes[0]);
+    } else {
+      setSelectedSize(null);
+    }
+
+    if (product?.colors && product.colors.length > 0) {
+      setSelectedColor(product.colors[0]);
+    } else {
+      setSelectedColor(null);
     }
   }, [product]);
 
@@ -40,7 +49,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
     );
   }
 
-  // 🌐 دعم اللغتين (العربية والإنجليزية) متوافقة مع تحديثات لوحة التحكم (Dashboard)
+  // 🌐 دعم اللغتين (العربية والإنجليزية)
   const displayName = isRtl 
     ? (product.nameAr || product.name || '') 
     : (product.nameEn || product.name || '');
@@ -64,6 +73,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
       name: displayName,
       description: displayDescription,
       selectedSize,
+      selectedColor,
       quantity
     });
   };
@@ -123,7 +133,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                 </span>
               ) : (
                 <span className="text-xs text-emerald-400 font-bold bg-emerald-950/50 border border-emerald-800 px-2.5 py-0.5 rounded-xs">
-                  {isRtl ? `متوفر في المخزون ` : `In Stock`}
+                  {isRtl ? 'متوفر في المخزون' : 'In Stock'}
                 </span>
               )}
             </div>
@@ -143,7 +153,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
             </p>
           </div>
 
-          {/* المقاسات */}
+          {/* المقاسات (تظهر فقط إذا كانت متوفرة للمنتج) */}
           {product.sizes && product.sizes.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
@@ -153,6 +163,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                 {product.sizes.map((size) => (
                   <button
                     key={size}
+                    type="button"
                     onClick={() => setSelectedSize(size)}
                     className={`px-4 py-2 text-xs font-bold border transition cursor-pointer rounded-xs ${
                       selectedSize === size
@@ -161,6 +172,31 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                     }`}
                   >
                     {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* الألوان (جاهزة ومجهزة لتظهر مستقبلاً إذا تمت إضافتها للمنتج) */}
+          {product.colors && product.colors.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
+                {isRtl ? 'اختر اللون:' : 'Select Color:'}
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {product.colors.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setSelectedColor(color)}
+                    className={`px-4 py-2 text-xs font-bold border transition cursor-pointer rounded-xs ${
+                      selectedColor === color
+                        ? 'border-[#D4AF37] bg-[#D4AF37] text-black'
+                        : 'border-white/20 bg-[#1A1A1A] text-white hover:border-[#D4AF37]'
+                    }`}
+                  >
+                    {color}
                   </button>
                 ))}
               </div>
@@ -176,6 +212,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                 </label>
                 <div className="flex items-center border border-white/20 bg-[#121212] rounded-xs">
                   <button 
+                    type="button"
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
                     className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
@@ -184,6 +221,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
                   </button>
                   <span className="px-4 py-1.5 text-sm font-bold text-[#D4AF37]">{quantity}</span>
                   <button 
+                    type="button"
                     onClick={() => setQuantity(Math.min(maxStock, quantity + 1))}
                     disabled={isMaxReached}
                     className="px-3 py-1.5 text-gray-400 hover:text-white transition font-bold disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
@@ -197,6 +235,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
             {/* زر إضافة للسلة */}
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
+                type="button"
                 onClick={handleAddToCart}
                 disabled={isOutOfStock}
                 className={`flex-1 font-bold py-3.5 px-6 rounded-xs transition duration-300 flex items-center justify-center gap-2 uppercase text-xs tracking-wider shadow-lg ${
@@ -227,7 +266,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
             </div>
             <div className="flex items-center gap-3">
               <i className="fa-solid fa-hand-holding-dollar text-lg text-[#D4AF37]"></i>
-              <span>{isRtl ? 'الدفع عبر التحويل البنكي' : 'Bank Transfer Payment'}</span>
+              <span>{isRtl ? 'الدفع عند الاستلام' : 'Cash on Delivery'}</span>
             </div>
             <div className="flex items-center gap-3">
               <i className="fa-solid fa-box-open text-lg text-[#D4AF37]"></i>
