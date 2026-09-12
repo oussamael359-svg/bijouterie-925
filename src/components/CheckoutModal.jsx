@@ -11,8 +11,8 @@ export default function CheckoutModal({
 }) {
   const bankInfo = {
     bankName: 'CIH Bank',
-    rib: '230 780 0000000000000000 45',
-    whatsappPhone: '212600000000'
+    rib: '230 021 3914395211000300 38',
+    whatsappPhone: '212636820175'
   };
 
   const [formData, setFormData] = useState({

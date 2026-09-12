@@ -20,7 +20,7 @@ export default function Footer({ currentLang }) {
           </p>
           <div className="flex items-center gap-2 text-xs text-[#D4AF37] font-semibold pt-2">
             <i className="fa-solid fa-shield-halved"></i>
-            <span>{isRtl ? 'فضة استرلينية 925 مضمونة 100%' : '100% Guaranteed 925 Silver'}</span>
+            <span>{isRtl ? 'Bijouterie 925 مضمونة 100%' : 'Bijouterie 925 Guaranteed 100%'}</span>
           </div>
         </div>
 
@@ -61,10 +61,6 @@ export default function Footer({ currentLang }) {
             <li className="flex items-center gap-2">
               <i className="fa-solid fa-building-columns text-[#D4AF37]"></i>
               <span>{isRtl ? 'الدفع عبر التحويل البنكي' : 'Bank Transfer Payment'}</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <i className="fa-solid fa-rotate-left text-[#D4AF37]"></i>
-              <span>{isRtl ? 'إمكانية المعاينة عند الاستلام' : 'Inspect Package Upon Delivery'}</span>
             </li>
           </ul>
         </div>
