@@ -11,12 +11,12 @@ export default function Footer({ currentLang }) {
         {/* العمود الأول: الماركة والهوية */}
         <div className="space-y-4">
           <h2 className="text-2xl font-serif font-bold text-[#F3E5AB] tracking-widest uppercase">
-            BIJOUTERIE
+            BIJOUTERIE 925
           </h2>
           <p className="text-xs text-gray-400 leading-relaxed font-light">
             {isRtl 
-              ? 'وجهتك الأولى للمجوهرات الرجالية الفاخرة المصنوعة من الفضة الإسترلينية 925 عالية النقاوة. هيبة، أناقة، وجودة تدوم.'
-              : 'Your premier destination for luxury men\'s jewelry crafted in pure 925 sterling silver. Distinction and elegance that endure.'}
+              ? 'وجهتك الأولى للمجوهرات الرجالية الفاخرة المصنوعة من Bijouterie 925 عالية النقاوة. هيبة، أناقة، وجودة تدوم.'
+              : 'Your premier destination for luxury men\'s jewelry crafted in pure Bijouterie 925. Distinction and elegance that endure.'}
           </p>
           <div className="flex items-center gap-2 text-xs text-[#D4AF37] font-semibold pt-2">
             <i className="fa-solid fa-shield-halved"></i>
@@ -74,9 +74,10 @@ export default function Footer({ currentLang }) {
             {isRtl ? 'تابع حساباتنا للاطلاع على أحدث المجموعات والعروض الحصرية.' : 'Follow us for latest drops and exclusive offers.'}
           </p>
           
-          <div className="flex items-center gap-4 text-lg">
+          <div className="flex items-center gap-3 text-lg flex-wrap">
+            {/* WhatsApp */}
             <a 
-              href="https://wa.me/" 
+              href="https://wa.me/212636820175" 
               target="_blank" 
               rel="noopener noreferrer" 
               aria-label="WhatsApp"
@@ -84,8 +85,9 @@ export default function Footer({ currentLang }) {
             >
               <i className="fa-brands fa-whatsapp"></i>
             </a>
+            {/* Instagram */}
             <a 
-              href="https://instagram.com/" 
+              href="https://www.instagram.com/y_bijouterie925?igsi=Y3RnZG5tZmFpM3o4" 
               target="_blank" 
               rel="noopener noreferrer" 
               aria-label="Instagram"
@@ -93,14 +95,25 @@ export default function Footer({ currentLang }) {
             >
               <i className="fa-brands fa-instagram"></i>
             </a>
+            {/* TikTok */}
             <a 
-              href="https://tiktok.com/" 
+              href="https://www.tiktok.com/@bijouterie925?_r=1&_t=ZS-99D5iXUSXHE" 
               target="_blank" 
               rel="noopener noreferrer" 
               aria-label="TikTok"
               className="w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition duration-300"
             >
               <i className="fa-brands fa-tiktok"></i>
+            </a>
+            {/* Facebook */}
+            <a 
+              href="https://www.facebook.com/share/1DouexYaP1/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              aria-label="Facebook"
+              className="w-9 h-9 rounded-full bg-[#121212] border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black transition duration-300"
+            >
+              <i className="fa-brands fa-facebook-f"></i>
             </a>
           </div>
         </div>
@@ -110,10 +123,10 @@ export default function Footer({ currentLang }) {
       {/* الشريط السفلي للحقوق */}
       <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
         <p>
-          &copy; {new Date().getFullYear()} BIJOUTERIE. {isRtl ? 'جميع الحقوق محفوظة.' : 'All Rights Reserved.'}
+          &copy; {new Date().getFullYear()} BIJOUTERIE 925. {isRtl ? 'جميع الحقوق محفوظة.' : 'All Rights Reserved.'}
         </p>
         <p className="text-[11px] text-gray-600">
-          {isRtl ? 'مجوهرات رجالية فضة استرلينية 925' : 'Luxury Men\'s 925 Silver Jewelry'}
+          {isRtl ? 'مجوهرات رجالية Bijouterie 925' : 'Luxury Men\'s Bijouterie 925 Jewelry'}
         </p>
       </div>
     </footer>
