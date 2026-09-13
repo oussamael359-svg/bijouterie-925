@@ -22,7 +22,23 @@ export default function AdminLayout({
   setCurrentLang 
 }) {
   const [isLoggedIn, setIsLoggedIn] = useState(() => sessionStorage.getItem('admin_logged_in') === 'true');
-  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // حفظ واسترجاع التبويب النشط لكي لا يعود للداشبورد عند عمل Refresh
+  const [activeTab, setActiveTab] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_active_tab');
+      return saved ? saved : 'dashboard';
+    } catch (e) {
+      return 'dashboard';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('admin_active_tab', activeTab);
+    } catch (e) {}
+  }, [activeTab]);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const [deletedProducts, setDeletedProducts] = useState(() => {

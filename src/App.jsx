@@ -222,6 +222,7 @@ export default function App() {
               setDeletedOrders={setDeletedOrders}
               currentLang={lang} 
               setCurrentLang={setLang}
+              onBackToHome={() => { window.location.href = '/'; }}
             />
           } 
         />
