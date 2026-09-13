@@ -143,43 +143,53 @@ export default function App() {
     if (maxStock <= 0) return;
 
     const qtyToAdd = product.quantity || 1;
+    const selectedSize = product.selectedSize || '';
+    const selectedColor = product.selectedColor || '';
 
     setCart(prev => {
       const exists = prev.find(
-        item => item.id === product.id && item.selectedSize === product.selectedSize
+        item => item.id === product.id && 
+                item.selectedSize === selectedSize && 
+                item.selectedColor === selectedColor
       );
 
       if (exists) {
         const updatedQty = Math.min(exists.quantity + qtyToAdd, maxStock);
         return prev.map(item =>
-          item.id === product.id && item.selectedSize === product.selectedSize
+          item.id === product.id && 
+          item.selectedSize === selectedSize && 
+          item.selectedColor === selectedColor
             ? { ...item, quantity: updatedQty }
             : item
         );
       }
 
       const initialQty = Math.min(qtyToAdd, maxStock);
-      return [...prev, { ...product, quantity: initialQty }];
+      return [...prev, { ...product, selectedSize, selectedColor, quantity: initialQty }];
     });
 
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (id, selectedSize) => {
+  const removeFromCart = (id, selectedSize, selectedColor) => {
     setCart(prev => prev.filter(item => {
-      if (selectedSize !== undefined && selectedSize !== null) {
-        return !(item.id === id && item.selectedSize === selectedSize);
+      const isSameId = item.id === id;
+      const isSameSize = (item.selectedSize || '') === (selectedSize || '');
+      const isSameColor = (item.selectedColor || '') === (selectedColor || '');
+      
+      if (selectedSize !== undefined || selectedColor !== undefined) {
+        return !(isSameId && isSameSize && isSameColor);
       }
-      return item.id !== id;
+      return !isSameId;
     }));
   };
 
-  const updateQuantity = (id, delta, selectedSize) => {
+  const updateQuantity = (id, delta, selectedSize, selectedColor) => {
     setCart(prev =>
       prev.map(item => {
-        const isMatch = (selectedSize !== undefined && selectedSize !== null)
-          ? (item.id === id && item.selectedSize === selectedSize)
-          : (item.id === id);
+        const isMatch = item.id === id && 
+          (selectedSize !== undefined ? (item.selectedSize || '') === (selectedSize || '') : true) &&
+          (selectedColor !== undefined ? (item.selectedColor || '') === (selectedColor || '') : true);
 
         if (isMatch) {
           const maxStock = item.stock ?? 99;

@@ -101,7 +101,11 @@ export default function CheckoutModal({
             <tbody>
               ${currentOrder.items.map(item => `
                 <tr>
-                  <td>${item.name}</td>
+                  <td>
+                    <strong>${item.name}</strong>
+                    ${item.selectedSize ? `<br><small style="color: #666;">Size/المقاس: ${item.selectedSize}</small>` : ''}
+                    ${item.selectedColor ? `<br><small style="color: #666;">Color/اللون: ${item.selectedColor}</small>` : ''}
+                  </td>
                   <td>${item.quantity}</td>
                   <td>${item.price * item.quantity} MAD</td>
                 </tr>
@@ -155,7 +159,13 @@ export default function CheckoutModal({
       setOrders(prevOrders => [newOrder, ...(prevOrders || [])]);
     }
 
-    const itemsText = cartItems.map(i => `- ${i.name} (${i.quantity}x) : ${i.price * i.quantity} MAD`).join('%0A');
+    const itemsText = cartItems.map(i => {
+      let details = '';
+      if (i.selectedSize) details += ` | المقاس: ${i.selectedSize}`;
+      if (i.selectedColor) details += ` | اللون: ${i.selectedColor}`;
+      return `- ${i.name}${details} (${i.quantity}x) : ${i.price * i.quantity} MAD`;
+    }).join('%0A');
+
     const message = `*طلب جديد عبر التحويل البنكي*%0A%0A*رقم الطلب:* ${newOrder.id}%0A*الاسم:* ${formData.fullName}%0A*البريد:* ${formData.email}%0A*الهاتف:* ${formData.phone}%0A*العنوان:* ${formData.address}, ${formData.city}%0A*مرجع التحويل:* ${formData.bankReference || 'لم يتم إدخاله'}%0A%0A*المنتجات:*%0A${itemsText}%0A%0A*المجموع الكلي:* ${calculatedTotal} MAD`;
     
     setWhatsappLink(`https://wa.me/${bankInfo.whatsappPhone}?text=${message}`);

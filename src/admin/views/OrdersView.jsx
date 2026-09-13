@@ -202,7 +202,17 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                     <div key={idx} className="flex justify-between items-center text-gray-300 border-b border-white/5 last:border-0 pb-2 last:pb-0">
                       <div className="flex items-center gap-2">
                         {item.image && <img src={item.image} alt="" className="w-8 h-8 object-cover rounded border border-[#D4AF37]/30" />}
-                        <span>{item.name} {item.selectedSize && <span className="text-[#D4AF37]">({item.selectedSize})</span>} <span className="text-gray-400">× {item.quantity}</span></span>
+                        <div>
+                          <span>{item.name}</span>
+                          {/* يدعم إظهار المقاس أو اللون مستقبلاً بشكل آمن إذا توفرا */}
+                          {(item.selectedSize || item.selectedColor) && (
+                            <div className="text-[11px] text-[#D4AF37] flex gap-2 mt-0.5">
+                              {item.selectedSize && <span>{isRtl ? 'المقاس:' : 'Size:'} {item.selectedSize}</span>}
+                              {item.selectedColor && <span>{isRtl ? 'اللون:' : 'Color:'} {item.selectedColor}</span>}
+                            </div>
+                          )}
+                          <span className="text-gray-400 text-[11px] block">× {item.quantity}</span>
+                        </div>
                       </div>
                       <span className="font-mono text-[#D4AF37] font-bold">{item.price * item.quantity} د.م.</span>
                     </div>
