@@ -15,12 +15,12 @@ export default function Footer({ currentLang }) {
           </h2>
           <p className="text-xs text-gray-400 leading-relaxed font-light">
             {isRtl 
-              ? 'وجهتك الأولى للمجوهرات الرجالية الفاخرة المصنوعة من Bijouterie 925 عالية النقاوة. هيبة، أناقة، وجودة تدوم.'
-              : 'Your premier destination for luxury men\'s jewelry crafted in pure Bijouterie 925. Distinction and elegance that endure.'}
+              ? 'وجهتك الأولى للمجوهرات الرجالية الفاخرة المصنوعة من الفضة 925 عالية النقاوة. هيبة، أناقة، وجودة تدوم.'
+              : 'Your premier destination for luxury men\'s jewelry crafted in pure Silver 925. Distinction and elegance that endure.'}
           </p>
           <div className="flex items-center gap-2 text-xs text-[#D4AF37] font-semibold pt-2">
             <i className="fa-solid fa-shield-halved"></i>
-            <span>{isRtl ? 'Bijouterie 925 مضمونة 100%' : 'Bijouterie 925 Guaranteed 100%'}</span>
+            <span>{isRtl ? 'فضة 925 مضمونة 100%' : 'Silver 925 Guaranteed 100%'}</span>
           </div>
         </div>
 
