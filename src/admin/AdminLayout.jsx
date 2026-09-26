@@ -7,6 +7,7 @@ import CategoriesView from './views/CategoriesView';
 import AttributesView from './views/AttributesView';
 import TrashView from './views/TrashView';
 import OrdersView from './views/OrdersView';
+import SettingsView from './views/SettingsView';
 
 export default function AdminLayout({ 
   products, 
@@ -143,6 +144,13 @@ export default function AdminLayout({
             currentLang={currentLang}
             deletedProducts={deletedProducts}
             setDeletedProducts={setDeletedProducts}
+          />
+        );
+
+      case 'settings':
+        return (
+          <SettingsView 
+            currentLang={currentLang} 
           />
         );
 
