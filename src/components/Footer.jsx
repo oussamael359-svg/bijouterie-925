@@ -120,13 +120,23 @@ export default function Footer({ currentLang }) {
 
       </div>
 
-      {/* الشريط السفلي للحقوق */}
+      {/* الشريط السفلي للحقوق والتوقيع */}
       <div className="max-w-7xl mx-auto pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
         <p>
           &copy; {new Date().getFullYear()} BIJOUTERIE 925. {isRtl ? 'جميع الحقوق محفوظة.' : 'All Rights Reserved.'}
         </p>
-        <p className="text-[11px] text-gray-600">
-          {isRtl ? 'مجوهرات رجالية Bijouterie 925' : 'Luxury Men\'s Bijouterie 925 Jewelry'}
+        
+        {/* التوقيع الاحترافي كـ رابط حقيقي */}
+        <p className="text-[11px] text-gray-400">
+          {isRtl ? 'تم التطوير بواسطة' : 'Created by'}{' '}
+          <a 
+            href="https://sharpcode.ma" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-[#D4AF37] hover:underline font-semibold tracking-wider"
+          >
+            sharpcode.ma
+          </a>
         </p>
       </div>
     </footer>
