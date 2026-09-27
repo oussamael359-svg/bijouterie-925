@@ -11,6 +11,7 @@ export default function CheckoutModal({
 }) {
   const bankInfo = {
     bankName: 'CIH Bank',
+    accountName: 'YOUSSEF BOUREJYLAH',
     rib: '230 021 3914395211000300 38',
     whatsappPhone: '212636820175'
   };
@@ -28,6 +29,7 @@ export default function CheckoutModal({
   const [whatsappLink, setWhatsappLink] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [copiedName, setCopiedName] = useState(false); // حالة نسخ الاسم
   const [currentOrder, setCurrentOrder] = useState(null);
 
   if (!isOpen) return null;
@@ -43,6 +45,12 @@ export default function CheckoutModal({
     navigator.clipboard.writeText(bankInfo.rib);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyName = () => {
+    navigator.clipboard.writeText(bankInfo.accountName);
+    setCopiedName(true);
+    setTimeout(() => setCopiedName(false), 2000);
   };
 
   const handleDownloadPDF = () => {
@@ -102,8 +110,7 @@ export default function CheckoutModal({
               ${currentOrder.items.map(item => `
                 <tr>
                   <td>
-                    <strong>${item.name}</strong>
-                    ${item.selectedSize ? `<br><small style="color: #666;">Size/المقاس: ${item.selectedSize}</small>` : ''}
+                    <strong>${item.name}</strong>${item.selectedSize ? `<br><small style="color: #666;">Size/المقاس: ${item.selectedSize}</small>` : ''}
                     ${item.selectedColor ? `<br><small style="color: #666;">Color/اللون: ${item.selectedColor}</small>` : ''}
                   </td>
                   <td>${item.quantity}</td>
@@ -119,7 +126,7 @@ export default function CheckoutModal({
 
           <div class="bank-info">
             <p style="margin: 0 0 5px; font-weight: bold;">Payment Info / معلومات التحويل البنكي:</p>
-            <p style="margin: 0;">Bank: ${bankInfo.bankName} | RIB: ${bankInfo.rib}</p>
+            <p style="margin: 0;">Bank: ${bankInfo.bankName} | Account Name: ${bankInfo.accountName} | RIB: ${bankInfo.rib}</p>
             <p style="margin: 5px 0 0; font-size: 12px; color: #666;">Bank Reference: ${currentOrder.bankReference}</p>
           </div>
         </div>
@@ -166,7 +173,7 @@ export default function CheckoutModal({
       return `- ${i.name}${details} (${i.quantity}x) : ${i.price * i.quantity} MAD`;
     }).join('%0A');
 
-    const message = `*طلب جديد عبر التحويل البنكي*%0A%0A*رقم الطلب:* ${newOrder.id}%0A*الاسم:* ${formData.fullName}%0A*البريد:* ${formData.email}%0A*الهاتف:* ${formData.phone}%0A*العنوان:* ${formData.address}, ${formData.city}%0A*مرجع التحويل:* ${formData.bankReference || 'لم يتم إدخاله'}%0A%0A*المنتجات:*%0A${itemsText}%0A%0A*المجموع الكلي:* ${calculatedTotal} MAD`;
+    const message = `*طلب جديد عبر التحويل البنكي*%0A%0A*رقم الطلب:* ${newOrder.id}%0A*الاسم:* ${formData.fullName}%0A*البريد:* ${formData.email}%0A*الهاتف:* ${formData.phone}%0A*العنوان:* ${formData.address}, ${formData.city}%0A*مرجع التحويل:* ${formData.bankReference || 'لم يتم إدخاله'}%0A%0A*معلومات الحساب:*%0Aالبنك: ${bankInfo.bankName}%0Aاسم صاحب الحساب: ${bankInfo.accountName}%0ARIB: ${bankInfo.rib}%0A%0A*المنتجات:*%0A${itemsText}%0A%0A*المجموع الكلي:* ${calculatedTotal} MAD`;
     
     setWhatsappLink(`https://wa.me/${bankInfo.whatsappPhone}?text=${message}`);
 
@@ -180,6 +187,7 @@ export default function CheckoutModal({
     setIsSubmitted(false);
     setFormData({ fullName: '', email: '', phone: '', address: '', city: '', bankReference: '' });
     setCopied(false);
+    setCopiedName(false);
     setCurrentOrder(null);
     onClose();
   };
@@ -213,8 +221,8 @@ export default function CheckoutModal({
               <i className="fa-solid fa-shield-halved text-[#D4AF37] text-lg shrink-0"></i>
               <p className="leading-relaxed">
                 {isRtl 
-                  ? 'ستظهر لك معلومات الحساب البنكي (RIB) مباشرة بعد تأكيد الطلب أدناه.' 
-                  : 'Bank account details (RIB) will appear immediately after confirming your order.'}
+                  ? 'ستظهر لك معلومات الحساب البنكي (اسم صاحب الحساب و RIB) مباشرة بعد تأكيد الطلب أدناه.' 
+                  : 'Bank account details will appear immediately after confirming your order.'}
               </p>
             </div>
 
@@ -313,8 +321,8 @@ export default function CheckoutModal({
             
             <div className="bg-[#D4AF37]/10 border border-[#D4AF37]/30 p-3.5 rounded-sm text-xs text-gray-200 leading-relaxed text-center">
               {isRtl 
-                ? 'قم بنسخ رقم الحساب (RIB)، وحول المبلغ المطلوب لكي تتوصل بمنتجاتك، ثم تواصل معنا عبر الواتساب لإرسال وصل التحويل.' 
-                : 'Copy the RIB number, transfer the required amount to receive your products, and contact us via WhatsApp.'}
+                ? 'قم بنسخ اسم صاحب الحساب ورقم RIB، وحول المبلغ المطلوب، ثم تواصل معنا عبر الواتساب لتأكيد الطلب.' 
+                : 'Copy the account name and RIB, transfer the amount, and contact us via WhatsApp.'}
             </div>
 
             <div className="bg-white/5 p-4 rounded-sm border border-[#D4AF37]/30 text-xs text-left space-y-3" dir="ltr">
@@ -328,13 +336,33 @@ export default function CheckoutModal({
                 <span className="font-semibold text-white">{bankInfo.bankName}</span>
               </div>
 
+              {/* قسم اسم صاحب الحساب مع زر النسخ */}
               <div className="space-y-1.5 pt-2 border-t border-white/10">
-                <span className="text-gray-400 text-[11px] block">RIB:</span>
+                <span className="text-gray-400 text-[11px] block">Account Name (اسم صاحب الحساب):</span>
+                <div className="flex justify-between items-center bg-black/60 p-2.5 rounded border border-white/10 gap-2">
+                  <span className="font-semibold text-[#F3E5AB] select-all tracking-wider text-xs break-all">
+                    {bankInfo.accountName}
+                  </span>
+                  <button 
+                    type="button"
+                    onClick={handleCopyName}
+                    className="bg-[#D4AF37] hover:bg-[#F3E5AB] text-black px-3 py-2 rounded flex items-center gap-1.5 cursor-pointer text-xs font-bold shrink-0 transition-colors shadow-md"
+                  >
+                    <i className={`fa-solid ${copiedName ? 'fa-check text-emerald-900' : 'fa-copy'} text-sm`}></i>
+                    <span>{copiedName ? (isRtl ? 'تم النسخ!' : 'Copied!') : (isRtl ? 'نسخ' : 'Copy')}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* قسم رقم RIB مع زر النسخ */}
+              <div className="space-y-1.5 pt-2 border-t border-white/10">
+                <span className="text-gray-400 text-[11px] block">RIB (رقم الحساب):</span>
                 <div className="flex justify-between items-center bg-black/60 p-2.5 rounded border border-white/10 gap-2">
                   <span className="font-mono text-[#D4AF37] font-bold select-all tracking-wider text-xs break-all">
                     {bankInfo.rib}
                   </span>
                   <button 
+                    type="button"
                     onClick={handleCopyRib}
                     className="bg-[#D4AF37] hover:bg-[#F3E5AB] text-black px-3 py-2 rounded flex items-center gap-1.5 cursor-pointer text-xs font-bold shrink-0 transition-colors shadow-md"
                   >
