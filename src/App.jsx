@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
-import { products as initialProducts } from './data/products';
+import { supabase } from './supabaseClient';
 import { translations } from './data/translations';
 import TopBar from './components/TopBar';
 import Navbar from './components/Navbar';
@@ -59,76 +59,85 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
   
-  const [products, setProducts] = useState(() => {
-    try {
-      const saved = localStorage.getItem('store_products');
-      return saved ? JSON.parse(saved) : initialProducts;
-    } catch (e) {
-      return initialProducts;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('store_products', JSON.stringify(products));
-    } catch (e) {}
-  }, [products]);
-  
-  const [orders, setOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem('store_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('store_orders', JSON.stringify(orders));
-    } catch (e) {}
-  }, [orders]);
-
-  const [deletedOrders, setDeletedOrders] = useState(() => {
-    try {
-      const saved = localStorage.getItem('store_deleted_orders');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('store_deleted_orders', JSON.stringify(deletedOrders));
-    } catch (e) {}
-  }, [deletedOrders]);
-
-  const [categories, setCategories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('store_categories');
-      return saved ? JSON.parse(saved) : [
-        { id: 'rings', titleAr: 'خواتم', titleEn: 'Rings', descAr: 'خواتم فاخرة بتصميم عصري', descEn: 'Luxury modern rings' },
-        { id: 'necklaces', titleAr: 'سلاسل وقلائد', titleEn: 'Necklaces', descAr: 'سلاسل فضية وذهبية راقية', descEn: 'Fine silver and gold necklaces' },
-        { id: 'bracelets', titleAr: 'أساور', titleEn: 'Bracelets', descAr: 'تشكيلة أساور مميزة', descEn: 'Unique bracelet collection' }
-      ];
-    } catch (e) {
-      return [
-        { id: 'rings', titleAr: 'خواتم', titleEn: 'Rings', descAr: 'خواتم فاخرة بتصميم عصري', descEn: 'Luxury modern rings' },
-        { id: 'necklaces', titleAr: 'سلاسل وقلائد', titleEn: 'Necklaces', descAr: 'سلاسل فضية وذهبية راقية', descEn: 'Fine silver and gold necklaces' },
-        { id: 'bracelets', titleAr: 'أساور', titleEn: 'Bracelets', descAr: 'تشكيلة أساور مميزة', descEn: 'Unique bracelet collection' }
-      ];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('store_categories', JSON.stringify(categories));
-    } catch (e) {}
-  }, [categories]);
-
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [attributes, setAttributes] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [deletedOrders, setDeletedOrders] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  
+
+  // جلب البيانات من Supabase عند تحميل التطبيق
+  useEffect(() => {
+    async function fetchAppData() {
+      try {
+        // 1. جلب المنتجات
+        const { data: prodData } = await supabase.from('products').select('*');
+        if (prodData) {
+          setProducts(prodData.map(p => ({
+            id: p.id,
+            name: p.name,
+            nameAr: p.name_ar,
+            nameEn: p.name_en,
+            category: p.category,
+            price: p.price,
+            stock: p.stock,
+            description: p.description,
+            descriptionAr: p.description_ar,
+            descriptionEn: p.description_en,
+            image: p.image,
+            sizes: p.attributes?.sizes || []
+          })));
+        }
+
+        // 2. جلب التصنيفات
+        const { data: catData } = await supabase.from('categories').select('*');
+        if (catData) {
+          setCategories(catData.map(c => ({
+            id: c.id,
+            titleAr: c.title_ar,
+            titleEn: c.title_en,
+            descAr: c.desc_ar,
+            descEn: c.desc_en,
+            image: c.image,
+            showOnHome: c.show_on_home
+          })));
+        }
+
+        // 3. جلب المقاسات والخصائص
+        const { data: attrData } = await supabase.from('attributes').select('*');
+        if (attrData) {
+          setAttributes(attrData.map(a => ({
+            id: a.id.toString(),
+            categoryId: a.category_id,
+            name: a.name
+          })));
+        }
+
+        // 4. جلب الطلبات
+        const { data: ordData } = await supabase.from('orders').select('*');
+        if (ordData) {
+          setOrders(ordData.map(o => ({
+            id: o.id,
+            customer: o.customer_name,
+            email: o.email,
+            phone: o.phone,
+            address: o.address,
+            paymentMethod: o.payment_method,
+            bankReference: o.bank_reference,
+            total: o.total,
+            status: o.status,
+            date: o.date,
+            items: o.items
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching data from Supabase:', err);
+      }
+    }
+
+    fetchAppData();
+  }, []);
+
   const t = translations[lang];
 
   const toggleLanguage = () => {
@@ -216,6 +225,8 @@ export default function App() {
               setProducts={setProducts} 
               categories={categories}
               setCategories={setCategories}
+              attributes={attributes}
+              setAttributes={setAttributes}
               orders={orders}
               setOrders={setOrders}
               deletedOrders={deletedOrders}

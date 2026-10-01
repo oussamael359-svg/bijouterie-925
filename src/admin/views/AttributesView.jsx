@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient';
 
 export default function AttributesView({ categories = [], attributes = [], setAttributes, currentLang }) {
   const isRtl = currentLang === 'ar';
@@ -13,22 +14,47 @@ export default function AttributesView({ categories = [], attributes = [], setAt
     }
   }, [categories]);
 
-  const handleAddAttribute = (e) => {
+  const handleAddAttribute = async (e) => {
     e.preventDefault();
     if (!inputValue.trim() || !selectedCategory) return;
 
-    const newAttr = {
-      id: Date.now().toString(),
-      categoryId: selectedCategory,
+    const payload = {
+      category_id: selectedCategory,
       name: inputValue.trim()
     };
 
-    setAttributes([...attributes, newAttr]);
-    setInputValue('');
+    // حفظ في Supabase
+    const { data, error } = await supabase
+      .from('attributes')
+      .insert([payload])
+      .select();
+
+    if (!error && data && data.length > 0) {
+      const newAttr = {
+        id: data[0].id.toString(),
+        categoryId: data[0].category_id,
+        name: data[0].name
+      };
+
+      setAttributes([...attributes, newAttr]);
+      setInputValue('');
+    } else {
+      console.error('Error adding attribute:', error);
+    }
   };
 
-  const handleRemoveAttribute = (id) => {
-    setAttributes(attributes.filter(attr => attr.id !== id));
+  const handleRemoveAttribute = async (id) => {
+    // حذف من Supabase
+    const { error } = await supabase
+      .from('attributes')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setAttributes(attributes.filter(attr => attr.id !== id));
+    } else {
+      console.error('Error deleting attribute:', error);
+    }
   };
 
   const currentCategoryAttributes = attributes.filter(attr => attr.categoryId === selectedCategory);

@@ -17,8 +17,11 @@ export default function Categories({ categories, currentLang }) {
     }
   };
 
-  // فلترة الأقسام لعرض المفعّل منها في الصفحة الرئيسية فقط
-  const displayedCategories = (categories || []).filter(cat => cat.showOnHome !== false);
+  // فلترة الأقسام لعرض المفعّل منها في الصفحة الرئيسية فقط (دعم camelCase و snake_case)
+  const displayedCategories = (categories || []).filter(cat => {
+    const show = cat.showOnHome !== undefined ? cat.showOnHome : cat.show_on_home;
+    return show !== false;
+  });
 
   if (displayedCategories.length === 0) return null;
 
@@ -67,8 +70,8 @@ export default function Categories({ categories, currentLang }) {
           }}
         >
           {displayedCategories.map((cat) => {
-            const title = isRtl ? (cat.titleAr || cat.title) : (cat.titleEn || cat.title);
-            const desc = isRtl ? (cat.descAr || cat.desc) : (cat.descEn || cat.desc);
+            const title = isRtl ? (cat.titleAr || cat.title_ar || cat.title) : (cat.titleEn || cat.title_en || cat.title);
+            const desc = isRtl ? (cat.descAr || cat.desc_ar || cat.desc) : (cat.descEn || cat.desc_en || cat.desc);
             
             return (
               <Link

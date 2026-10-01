@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ProductForm from './ProductForm';
+import { supabase } from '../../supabaseClient';
 
 export default function ProductsView({ 
   products, 
   setProducts, 
   categories = [], 
-  attributes = [], // 1. استقبال قائمة المقاسات والخصائص
+  attributes = [], 
   currentLang,
   deletedProducts = [],
   setDeletedProducts 
@@ -25,7 +26,7 @@ export default function ProductsView({
     descriptionAr: '',
     descriptionEn: '',
     image: '',
-    sizes: [] // 2. إضافة حقل المقاسات للحالة الأولية
+    sizes: [] 
   });
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function ProductsView({
       descriptionAr: '',
       descriptionEn: '',
       image: '',
-      sizes: [] // تصفير المقاسات عند الإضافة
+      sizes: [] 
     });
     setIsModalOpen(true);
   };
@@ -82,51 +83,80 @@ export default function ProductsView({
       descriptionAr: product.descriptionAr || product.description || '',
       descriptionEn: product.descriptionEn || '',
       image: product.image || '',
-      sizes: product.sizes || [] // جلب المقاسات المحفوظة مسبقاً للمنتج
+      sizes: product.sizes || [] 
     });
     setIsModalOpen(true);
   };
 
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!formData.nameAr.trim() && !formData.nameEn.trim()) return;
 
+    const payload = {
+      name: formData.nameAr || formData.nameEn,
+      name_ar: formData.nameAr,
+      name_en: formData.nameEn,
+      category: formData.category || (categories[0]?.id ?? 'general'),
+      price: parseFloat(formData.price) || 0,
+      stock: parseInt(formData.stock) || 1,
+      description: formData.descriptionAr || formData.descriptionEn,
+      description_ar: formData.descriptionAr,
+      description_en: formData.descriptionEn,
+      image: formData.image.trim() || 'https://via.placeholder.com/150',
+      attributes: { sizes: formData.sizes || [] } // تخزين المقاسات كـ JSON في Supabase
+    };
+
     if (editingProduct) {
-      setProducts(products.map(p => {
-        if (p.id === editingProduct.id) {
-          return {
-            ...p,
-            name: formData.nameAr || formData.nameEn,
-            nameAr: formData.nameAr,
-            nameEn: formData.nameEn,
-            category: formData.category || (categories[0]?.id ?? 'general'),
-            price: parseFloat(formData.price) || 0,
-            stock: parseInt(formData.stock) || 1,
-            description: formData.descriptionAr || formData.descriptionEn,
-            descriptionAr: formData.descriptionAr,
-            descriptionEn: formData.descriptionEn,
-            image: formData.image.trim() || 'https://via.placeholder.com/150',
-            sizes: formData.sizes || [] // حفظ المقاسات المحددة
-          };
-        }
-        return p;
-      }));
+      // تحديث في Supabase
+      const { error } = await supabase
+        .from('products')
+        .update(payload)
+        .eq('id', editingProduct.id);
+
+      if (!error) {
+        setProducts(products.map(p => {
+          if (p.id === editingProduct.id) {
+            return {
+              ...p,
+              ...payload,
+              nameAr: formData.nameAr,
+              nameEn: formData.nameEn,
+              descriptionAr: formData.descriptionAr,
+              descriptionEn: formData.descriptionEn,
+              sizes: formData.sizes || []
+            };
+          }
+          return p;
+        }));
+      } else {
+        console.error('Error updating product:', error);
+      }
     } else {
-      const newProduct = {
-        id: Date.now().toString(),
-        name: formData.nameAr || formData.nameEn,
-        nameAr: formData.nameAr,
-        nameEn: formData.nameEn,
-        category: formData.category || (categories[0]?.id ?? 'general'),
-        price: parseFloat(formData.price) || 0,
-        stock: parseInt(formData.stock) || 1,
-        description: formData.descriptionAr || formData.descriptionEn,
-        descriptionAr: formData.descriptionAr,
-        descriptionEn: formData.descriptionEn,
-        image: formData.image.trim() || 'https://via.placeholder.com/150',
-        sizes: formData.sizes || [] // حفظ المقاسات المحددة
-      };
-      setProducts([newProduct, ...products]);
+      // إضافة جديد في Supabase
+      const { data, error } = await supabase
+        .from('products')
+        .insert([payload])
+        .select();
+
+      if (!error && data && data.length > 0) {
+        const newProduct = {
+          id: data[0].id,
+          name: data[0].name,
+          nameAr: data[0].name_ar,
+          nameEn: data[0].name_en,
+          category: data[0].category,
+          price: data[0].price,
+          stock: data[0].stock,
+          description: data[0].description,
+          descriptionAr: data[0].description_ar,
+          descriptionEn: data[0].description_en,
+          image: data[0].image,
+          sizes: data[0].attributes?.sizes || []
+        };
+        setProducts([newProduct, ...products]);
+      } else {
+        console.error('Error inserting product:', error);
+      }
     }
 
     setIsModalOpen(false);
@@ -144,10 +174,20 @@ export default function ProductsView({
     });
   };
 
-  const handleDelete = (product) => {
-    setProducts(products.filter(p => p.id !== product.id));
-    if (setDeletedProducts) {
-      setDeletedProducts(prev => [product, ...prev]);
+  const handleDelete = async (product) => {
+    // حذف من Supabase
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', product.id);
+
+    if (!error) {
+      setProducts(products.filter(p => p.id !== product.id));
+      if (setDeletedProducts) {
+        setDeletedProducts(prev => [product, ...prev]);
+      }
+    } else {
+      console.error('Error deleting product:', error);
     }
   };
 

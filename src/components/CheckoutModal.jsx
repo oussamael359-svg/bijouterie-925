@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../supabaseClient'; // تأكد من المسار الصحيح لملف supabaseClient
 
 export default function CheckoutModal({ 
   isOpen, 
@@ -29,7 +30,7 @@ export default function CheckoutModal({
   const [whatsappLink, setWhatsappLink] = useState('');
   const [finalTotal, setFinalTotal] = useState(0);
   const [copied, setCopied] = useState(false);
-  const [copiedName, setCopiedName] = useState(false); // حالة نسخ الاسم
+  const [copiedName, setCopiedName] = useState(false);
   const [currentOrder, setCurrentOrder] = useState(null);
 
   if (!isOpen) return null;
@@ -140,15 +141,42 @@ export default function CheckoutModal({
     printWindow.document.close();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const calculatedTotal = currentTotalPrice;
     setFinalTotal(calculatedTotal);
 
+    const orderId = 'ORD-' + Date.now().toString().slice(-6);
+    const orderDate = new Date().toISOString().split('T')[0];
+
+    // هيكل الطلب المتوافق مع جدول orders في Supabase
+    const payload = {
+      id: orderId,
+      customer_name: formData.fullName,
+      email: formData.email,
+      phone: formData.phone,
+      address: `${formData.address}, ${formData.city}`,
+      payment_method: 'Bank Transfer',
+      bank_reference: formData.bankReference || 'غير محدد',
+      total: calculatedTotal,
+      status: 'pending',
+      date: orderDate,
+      items: cartItems
+    };
+
+    // حفظ الطلب في Supabase سحابياً
+    const { error } = await supabase
+      .from('orders')
+      .insert([payload]);
+
+    if (error) {
+      console.error('Error saving order to Supabase:', error);
+    }
+
     const newOrder = {
-      id: 'ORD-' + Date.now().toString().slice(-6),
-      date: new Date().toISOString().split('T')[0],
+      id: orderId,
+      date: orderDate,
       customer: formData.fullName,
       email: formData.email,
       phone: formData.phone,

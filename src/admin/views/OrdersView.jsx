@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { supabase } from '../../supabaseClient';
 
 export default function AdminOrders({ orders, setOrders, products, setProducts, deletedOrders, setDeletedOrders, currentLang }) {
   const isRtl = currentLang === 'ar';
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'pending', 'completed'
 
-  const updateOrderStatus = (orderId, newStatus) => {
+  const updateOrderStatus = async (orderId, newStatus) => {
     const targetOrder = orders.find(o => o.id === orderId);
     if (!targetOrder) return;
 
@@ -16,8 +17,23 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
 
     if (!window.confirm(confirmMessage)) return;
 
-    // خصم الكميات من المخزون عند تحويل الحالة إلى مكتمل لأول مرة
+    // خصم الكميات من المخزون في Supabase عند تحويل الحالة إلى مكتمل لأول مرة
     if (newStatus === 'completed' && targetOrder.status !== 'completed' && setProducts) {
+      for (const orderedItem of (targetOrder.items || [])) {
+        const matchingProduct = products.find(p => String(p.id) === String(orderedItem.id) || String(p.id) === String(orderedItem.productId));
+        if (matchingProduct) {
+          const currentStock = matchingProduct.stock ?? 1;
+          const newStock = Math.max(0, currentStock - (Number(orderedItem.quantity) || 1));
+          
+          // تحديث المخزون في جدول products في Supabase
+          await supabase
+            .from('products')
+            .update({ stock: newStock })
+            .eq('id', matchingProduct.id);
+        }
+      }
+
+      // تحديث الحالة المحلية للمنتجات
       setProducts(prevProducts => {
         return prevProducts.map(product => {
           const orderedItem = targetOrder.items?.find(
@@ -33,31 +49,47 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
       });
     }
 
-    // تحديث حالة الطلب
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-  };
+    // تحديث حالة الطلب في جدول orders في Supabase
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
 
-  const deleteOrder = (orderId) => {
-    if (window.confirm(isRtl ? 'هل أنت متأكد من نقل هذا الطلب إلى سلة المهملات؟' : 'Are you sure you want to move this order to trash?')) {
-      // 1. البحث عن الطلب المراد حذفه
-      const orderToDelete = orders.find(order => order.id === orderId);
-      
-      if (orderToDelete && setDeletedOrders) {
-        // 2. إضافته إلى سلة المهملات
-        setDeletedOrders(prev => [orderToDelete, ...prev]);
-      }
-
-      // 3. إزالته من القائمة النشطة
-      setOrders(prev => prev.filter(order => order.id !== orderId));
+    if (!error) {
+      // تحديث الحالة محلياً
+      setOrders(prev => prev.map(order => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+    } else {
+      console.error('Error updating order status:', error);
     }
   };
 
-  // فلترة الطلبات حسب البحث (مع دعم البحث بالبريد الإلكتروني) والحالة
+  const deleteOrder = async (orderId) => {
+    if (window.confirm(isRtl ? 'هل أنت متأكد من نقل هذا الطلب إلى سلة المهملات؟' : 'Are you sure you want to move this order to trash?')) {
+      const orderToDelete = orders.find(order => order.id === orderId);
+      
+      // حذف الطلب من جدول orders في Supabase
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (!error) {
+        if (orderToDelete && setDeletedOrders) {
+          setDeletedOrders(prev => [orderToDelete, ...prev]);
+        }
+        setOrders(prev => prev.filter(order => order.id !== orderId));
+      } else {
+        console.error('Error deleting order:', error);
+      }
+    }
+  };
+
+  // فلترة الطلبات حسب البحث والحالة
   const filteredOrders = orders?.filter(order => {
     const matchesSearch = 
-      (order.id && order.id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.id && String(order.id).toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.customer && order.customer.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.email && order.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.phone && order.phone.includes(searchTerm));
@@ -70,7 +102,6 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
   return (
     <div className="p-6 text-white space-y-6 overflow-x-hidden" dir={isRtl ? 'rtl' : 'ltr'}>
       <style>{`
-        /* تخصيص شريط التمرير ليطابق الهوية البصرية الفاخرة */
         ::-webkit-scrollbar {
           width: 6px;
           height: 6px;
@@ -143,10 +174,8 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
           {filteredOrders.map(order => (
             <div key={order.id} className="bg-[#121212] border border-[#D4AF37]/30 p-5 rounded-sm shadow-2xl space-y-4 relative overflow-hidden">
               
-              {/* شريط جمالي في الجانب */}
               <div className={`absolute top-0 ${isRtl ? 'left-0' : 'right-0'} w-1 h-full ${order.status === 'completed' ? 'bg-emerald-500' : 'bg-[#D4AF37]'}`}></div>
 
-              {/* رأس الطلب: الرقم والحالة */}
               <div className="flex flex-wrap justify-between items-center border-b border-white/10 pb-3 gap-2">
                 <div>
                   <span className="text-[#D4AF37] font-bold font-mono text-sm tracking-wide">{order.id}</span>
@@ -170,7 +199,6 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                 </div>
               </div>
 
-              {/* بيانات العميل ومعلومات التحويل */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-300">
                 <div className="space-y-2 bg-black/40 p-3.5 rounded-sm border border-white/5">
                   <p className="text-[#F3E5AB] font-semibold border-b border-white/5 pb-1 mb-1.5 flex items-center gap-1.5">
@@ -192,7 +220,6 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                 </div>
               </div>
 
-              {/* المنتجات المطلوبة */}
               <div>
                 <p className="text-xs text-[#F3E5AB] mb-2 font-semibold flex items-center gap-1.5">
                   <i className="fa-solid fa-bag-shopping text-[#D4AF37]"></i> {isRtl ? 'المنتجات المطلوبة:' : 'Ordered Items:'}
@@ -204,7 +231,6 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                         {item.image && <img src={item.image} alt="" className="w-8 h-8 object-cover rounded border border-[#D4AF37]/30" />}
                         <div>
                           <span>{item.name}</span>
-                          {/* يدعم إظهار المقاس أو اللون مستقبلاً بشكل آمن إذا توفرا */}
                           {(item.selectedSize || item.selectedColor) && (
                             <div className="text-[11px] text-[#D4AF37] flex gap-2 mt-0.5">
                               {item.selectedSize && <span>{isRtl ? 'المقاس:' : 'Size:'} {item.selectedSize}</span>}
@@ -220,7 +246,6 @@ export default function AdminOrders({ orders, setOrders, products, setProducts, 
                 </div>
               </div>
 
-              {/* أزرار التحكم في حالة الطلب */}
               <div className="flex justify-end gap-2 pt-3 border-t border-white/10">
                 {order.status !== 'completed' ? (
                   <button 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../supabaseClient';
 
 export default function SettingsView({ currentLang }) {
   const isRtl = currentLang === 'ar';
@@ -14,13 +15,27 @@ export default function SettingsView({ currentLang }) {
 
   const [savedMessage, setSavedMessage] = useState(false);
 
+  // جلب الإعدادات من Supabase عند التحميل
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('store_topbar_details');
-      if (saved) {
-        setSettings(JSON.parse(saved));
+    async function fetchSettings() {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .limit(1)
+        .single();
+
+      if (!error && data) {
+        setSettings({
+          phone: data.phone || '',
+          email: data.email || '',
+          locationAr: data.location_ar || '',
+          locationEn: data.location_en || '',
+          supportAr: data.support_ar || '',
+          supportEn: data.support_en || ''
+        });
       }
-    } catch (e) {}
+    }
+    fetchSettings();
   }, []);
 
   const handleChange = (e) => {
@@ -28,13 +43,30 @@ export default function SettingsView({ currentLang }) {
     setSettings(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    try {
-      localStorage.setItem('store_topbar_details', JSON.stringify(settings));
+    
+    const payload = {
+      id: 1, // صف واحد للإعدادات العامة
+      phone: settings.phone,
+      email: settings.email,
+      location_ar: settings.locationAr,
+      location_en: settings.locationEn,
+      support_ar: settings.supportAr,
+      support_en: settings.supportEn
+    };
+
+    // حفظ أو تحديث في Supabase (Upsert)
+    const { error } = await supabase
+      .from('settings')
+      .upsert(payload);
+
+    if (!error) {
       setSavedMessage(true);
       setTimeout(() => setSavedMessage(false), 3000);
-    } catch (e) {}
+    } else {
+      console.error('Error saving settings:', error);
+    }
   };
 
   return (
@@ -50,7 +82,7 @@ export default function SettingsView({ currentLang }) {
 
       {savedMessage && (
         <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xs text-xs">
-          {isRtl ? '✓ تم حفظ التغييرات بنجاح!' : '✓ Changes saved successfully!'}
+          {isRtl ? '✓ تم حفظ التغييرات بنجاح في قاعدة البيانات!' : '✓ Changes saved successfully to database!'}
         </div>
       )}
 

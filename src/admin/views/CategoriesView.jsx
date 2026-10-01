@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../../supabaseClient';
 
 export default function CategoriesView({ 
   categories, 
@@ -56,20 +57,55 @@ export default function CategoriesView({
     }
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     if (!formData.id || !formData.titleAr) return;
 
+    const formattedId = formData.id.toLowerCase().trim().replace(/\s+/g, '-');
+
+    const payload = {
+      id: formattedId,
+      title_ar: formData.titleAr,
+      title_en: formData.titleEn,
+      desc_ar: formData.descAr,
+      desc_en: formData.descEn,
+      image: formData.image,
+      show_on_home: formData.showOnHome
+    };
+
     if (editingCategory) {
-      setCategories(categories.map(c => c.id === editingCategory.id ? { ...formData } : c));
+      // تحديث في Supabase
+      const { error } = await supabase
+        .from('categories')
+        .update(payload)
+        .eq('id', editingCategory.id);
+
+      if (!error) {
+        setCategories(categories.map(c => c.id === editingCategory.id ? { ...formData, id: formattedId } : c));
+        setIsModalOpen(false); // الإغلاق فقط عند النجاح
+      } else {
+        console.error('Error updating category:', error);
+        alert(isRtl ? `خطأ أثناء التعديل: ${error.message}` : `Error updating: ${error.message}`);
+      }
     } else {
-      if (categories.some(c => c.id === formData.id)) {
+      if (categories.some(c => c.id === formattedId)) {
         alert(isRtl ? 'معرف التصنيف (ID) موجود مسبقاً!' : 'Category ID already exists!');
         return;
       }
-      setCategories([...categories, formData]);
+
+      // إضافة جديد في Supabase
+      const { error } = await supabase
+        .from('categories')
+        .insert([payload]);
+
+      if (!error) {
+        setCategories([...categories, { ...formData, id: formattedId }]);
+        setIsModalOpen(false); // الإغلاق فقط عند النجاح
+      } else {
+        console.error('Error inserting category:', error);
+        alert(isRtl ? `خطأ أثناء الحفظ في قاعدة البيانات: ${error.message}` : `Error inserting: ${error.message}`);
+      }
     }
-    setIsModalOpen(false);
   };
 
   const handleOpenDelete = (cat) => {
@@ -77,16 +113,22 @@ export default function CategoriesView({
     setIsDeleteModalOpen(true);
   };
 
-  // نقل التصنيف إلى سلة المهملات
-  const confirmDelete = () => {
+  // نقل التصنيف إلى سلة المهملات وحذفه من Supabase
+  const confirmDelete = async () => {
     if (!categoryToDelete) return;
     
-    // إزالته من قائمة التصنيفات النشطة
-    setCategories(categories.filter(c => c.id !== categoryToDelete.id));
-    
-    // إضافته إلى سلة مهملات التصنيفات
-    if (setDeletedCategories) {
-      setDeletedCategories([categoryToDelete, ...deletedCategories]);
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', categoryToDelete.id);
+
+    if (!error) {
+      setCategories(categories.filter(c => c.id !== categoryToDelete.id));
+      if (setDeletedCategories) {
+        setDeletedCategories([categoryToDelete, ...deletedCategories]);
+      }
+    } else {
+      console.error('Error deleting category:', error);
     }
 
     setIsDeleteModalOpen(false);
