@@ -17,7 +17,6 @@ export default function AdminSidebar({
   const menuItems = [
     { id: 'dashboard', labelAr: 'الداشبورد (الإحصائيات)', labelEn: 'Dashboard', icon: 'fa-gauge-high' },
     { id: 'categories', labelAr: 'التصنيفات', labelEn: 'Categories', icon: 'fa-tags' },
-    { id: 'attributes', labelAr: 'المقاسات والخصائص', labelEn: 'Attributes', icon: 'fa-sliders' },
     { id: 'products', labelAr: 'المنتجات', labelEn: 'Products', icon: 'fa-boxes-stacked' },
     { 
       id: 'orders', 
@@ -26,7 +25,7 @@ export default function AdminSidebar({
       icon: 'fa-receipt', 
       badge: orders?.length || 0 
     },
-    { id: 'settings', labelAr: 'الإعدادات', labelEn: 'Settings', icon: 'fa-gear' }, // زر الإعدادات الجديد
+    { id: 'settings', labelAr: 'الإعدادات', labelEn: 'Settings', icon: 'fa-gear' },
     { 
       id: 'trash', 
       labelAr: 'سلة المهملات', 

@@ -8,33 +8,11 @@ export default function ProductForm({
   setFormData,
   editingProduct,
   categories,
-  attributes = [], // 1. استقبال قائمة الخصائص والمقاسات
   currentLang,
   onImageChange
 }) {
   if (!isOpen) return null;
   const isRtl = currentLang === 'ar';
-
-  // 2. تصفية المقاسات أو الخصائص بناءً على الفئة المختارة للمنتج حالياً
-  const currentCategoryAttributes = attributes.filter(
-    attr => attr.categoryId === formData.category
-  );
-
-  // 3. دالة تحديد أو إلغاء تحديد مقاس معين
-  const handleSizeToggle = (sizeName) => {
-    const currentSizes = formData.sizes || [];
-    if (currentSizes.includes(sizeName)) {
-      setFormData({
-        ...formData,
-        sizes: currentSizes.filter(s => s !== sizeName)
-      });
-    } else {
-      setFormData({
-        ...formData,
-        sizes: [...currentSizes, sizeName]
-      });
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -107,7 +85,7 @@ export default function ProductForm({
             <label className="block text-gray-400 mb-1">{isRtl ? 'التصنيف' : 'Category'}</label>
             <select
               value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value, sizes: [] })}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full bg-black/50 border border-white/15 text-white px-3 py-2 rounded-xs outline-none focus:border-[#D4AF37]"
             >
               {categories.length > 0 ? (
@@ -124,33 +102,19 @@ export default function ProductForm({
             </select>
           </div>
 
-          {/* 4. قسم المقاسات / الخصائص الديناميكية (يظهر فقط إذا كانت الفئة تحتوي على مقاسات مسجلة) */}
-          {currentCategoryAttributes.length > 0 && (
-            <div className="border border-white/10 bg-white/5 p-3 rounded-xs space-y-2">
-              <label className="block text-[#F3E5AB] font-bold text-[11px]">
-                {isRtl ? 'المقاسات المتاحة لهذا التصنيف:' : 'Available Sizes for this Category:'}
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {currentCategoryAttributes.map((attr) => {
-                  const isSelected = (formData.sizes || []).includes(attr.name);
-                  return (
-                    <button
-                      key={attr.id}
-                      type="button"
-                      onClick={() => handleSizeToggle(attr.name)}
-                      className={`px-3 py-1 text-[11px] rounded-xs border transition cursor-pointer ${
-                        isSelected 
-                          ? 'bg-[#D4AF37] text-black border-[#D4AF37] font-bold' 
-                          : 'bg-black/40 text-gray-300 border-white/15 hover:border-[#D4AF37]'
-                      }`}
-                    >
-                      {attr.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {/* خانة المقاسات المرنة واليدوية (اختيارية ويمكن تركها فارغة) */}
+          <div>
+            <label className="block text-gray-400 mb-1">
+              {isRtl ? 'المقاس (اختياري - اتركه فارغاً إن لم يكن مطلوباً)' : 'Size (Optional - leave blank if not needed)'}
+            </label>
+            <input
+              type="text"
+              value={formData.size || ''}
+              onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+              placeholder={isRtl ? 'مثال: 55, 57 أو اتركه فارغاً' : 'e.g., 55, 57 or leave blank'}
+              className="w-full bg-black/50 border border-white/15 text-white px-3 py-2 rounded-xs outline-none focus:border-[#D4AF37]"
+            />
+          </div>
 
           {/* السعر والمخزون */}
           <div className="grid grid-cols-2 gap-3">
@@ -196,7 +160,7 @@ export default function ProductForm({
               </label>
               <input
                 type="text"
-                value={formData.image.startsWith('data:') ? (isRtl ? '[تم رفع صورة من الجهاز]' : '[Image uploaded from device]') : formData.image}
+                value={formData.image && formData.image.startsWith('data:') ? (isRtl ? '[تم رفع صورة من الجهاز]' : '[Image uploaded from device]') : (formData.image || '')}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                 placeholder="https://example.com/image.jpg"
                 className="w-full bg-black/50 border border-white/15 text-white px-3 py-2 rounded-xs outline-none focus:border-[#D4AF37]"

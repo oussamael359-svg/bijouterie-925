@@ -18,10 +18,15 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
   const [selectedSize, setSelectedSize] = useState(null);
   const [selectedColor, setSelectedColor] = useState(null);
 
+  // استخراج المقاسات كمتغير مصفوفة بناءً على النص المدخل يدوياً (مثال: "55, 57" -> ['55', '57'])
+  const availableSizes = product?.size 
+    ? product.size.split(',').map(s => s.trim()).filter(Boolean) 
+    : [];
+
   // تحديث المقاس واللون الافتراضي عند تحميل المنتج
   useEffect(() => {
-    if (product?.sizes && product.sizes.length > 0) {
-      setSelectedSize(product.sizes[0]);
+    if (availableSizes.length > 0) {
+      setSelectedSize(availableSizes[0]);
     } else {
       setSelectedSize(null);
     }
@@ -153,14 +158,14 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
             </p>
           </div>
 
-          {/* المقاسات (تظهر فقط إذا كانت متوفرة للمنتج) */}
-          {product.sizes && product.sizes.length > 0 && (
+          {/* المقاسات (تظهر فقط إذا كتب الأدمن مقاسات في الحقل النصي للمنتج) */}
+          {availableSizes.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">
                 {isRtl ? 'اختر المقاس:' : 'Select Size:'}
               </label>
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map((size) => (
+                {availableSizes.map((size) => (
                   <button
                     key={size}
                     type="button"
@@ -178,7 +183,7 @@ export default function ProductDetailsPage({ products, onAddToCart, currentLang 
             </div>
           )}
 
-          {/* الألوان (جاهزة ومجهزة لتظهر مستقبلاً إذا تمت إضافتها للمنتج) */}
+          {/* الألوان (اختيارية إن وجدت) */}
           {product.colors && product.colors.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-300 uppercase tracking-wider block">

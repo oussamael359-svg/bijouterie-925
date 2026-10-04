@@ -17,6 +17,7 @@ export default function ProductsView({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
+  // تحديث الحالة الأولية لتصبح size (نص) بدلاً من sizes (مصفوفة)
   const [formData, setFormData] = useState({
     nameAr: '',
     nameEn: '',
@@ -26,7 +27,7 @@ export default function ProductsView({
     descriptionAr: '',
     descriptionEn: '',
     image: '',
-    sizes: [] 
+    size: '' 
   });
 
   useEffect(() => {
@@ -67,13 +68,16 @@ export default function ProductsView({
       descriptionAr: '',
       descriptionEn: '',
       image: '',
-      sizes: [] 
+      size: '' 
     });
     setIsModalOpen(true);
   };
 
   const handleOpenEditModal = (product) => {
     setEditingProduct(product);
+    // التعامل مع المقاس سواء كان مخزناً كنص سابقة أو مصفوفة قديمة
+    const existingSize = product.size || (Array.isArray(product.sizes) ? product.sizes.join(', ') : (product.attributes?.sizes?.join(', ') || ''));
+    
     setFormData({
       nameAr: product.nameAr || product.name || '',
       nameEn: product.nameEn || '',
@@ -83,7 +87,7 @@ export default function ProductsView({
       descriptionAr: product.descriptionAr || product.description || '',
       descriptionEn: product.descriptionEn || '',
       image: product.image || '',
-      sizes: product.sizes || [] 
+      size: existingSize 
     });
     setIsModalOpen(true);
   };
@@ -92,6 +96,7 @@ export default function ProductsView({
     e.preventDefault();
     if (!formData.nameAr.trim() && !formData.nameEn.trim()) return;
 
+    // تجهيز البيانات للإرسال إلى Supabase (تخزين المقاس كنص في attributes أو عمود مخصص)
     const payload = {
       name: formData.nameAr || formData.nameEn,
       name_ar: formData.nameAr,
@@ -103,7 +108,7 @@ export default function ProductsView({
       description_ar: formData.descriptionAr,
       description_en: formData.descriptionEn,
       image: formData.image.trim() || 'https://via.placeholder.com/150',
-      attributes: { sizes: formData.sizes || [] } // تخزين المقاسات كـ JSON في Supabase
+      attributes: { size: formData.size.trim() } // حفظ المقاس النصي المرن داخل JSON attributes
     };
 
     if (editingProduct) {
@@ -123,7 +128,7 @@ export default function ProductsView({
               nameEn: formData.nameEn,
               descriptionAr: formData.descriptionAr,
               descriptionEn: formData.descriptionEn,
-              sizes: formData.sizes || []
+              size: formData.size.trim()
             };
           }
           return p;
@@ -151,7 +156,7 @@ export default function ProductsView({
           descriptionAr: data[0].description_ar,
           descriptionEn: data[0].description_en,
           image: data[0].image,
-          sizes: data[0].attributes?.sizes || []
+          size: data[0].attributes?.size || ''
         };
         setProducts([newProduct, ...products]);
       } else {
@@ -170,7 +175,7 @@ export default function ProductsView({
       descriptionAr: '',
       descriptionEn: '',
       image: '',
-      sizes: []
+      size: ''
     });
   };
 
@@ -348,7 +353,7 @@ export default function ProductsView({
         </div>
       </div>
 
-      {/* استدعاء نموذج الفورم مع تمرير الـ attributes */}
+      {/* استدعاء نموذج الفورم */}
       <ProductForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -357,7 +362,6 @@ export default function ProductsView({
         setFormData={setFormData}
         editingProduct={editingProduct}
         categories={categories}
-        attributes={attributes} 
         currentLang={currentLang}
         onImageChange={handleImageFileChange}
       />

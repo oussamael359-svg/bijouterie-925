@@ -58,7 +58,7 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [lang, setLang] = useState('ar');
-  
+   
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [attributes, setAttributes] = useState([]);
@@ -85,7 +85,7 @@ export default function App() {
             descriptionAr: p.description_ar,
             descriptionEn: p.description_en,
             image: p.image,
-            sizes: p.attributes?.sizes || []
+            size: p.attributes?.size || p.size || '' // تم التحديث لقراءة المقاس النصي المرن
           })));
         }
 
@@ -185,7 +185,7 @@ export default function App() {
       const isSameId = item.id === id;
       const isSameSize = (item.selectedSize || '') === (selectedSize || '');
       const isSameColor = (item.selectedColor || '') === (selectedColor || '');
-      
+       
       if (selectedSize !== undefined || selectedColor !== undefined) {
         return !(isSameId && isSameSize && isSameColor);
       }
